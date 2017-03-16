@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "noImplicitAny": false,
+        "noEmitOnError": false,
+        "removeComments": false,
+        "declaration": true,
+        "sourceMap": true,
+        "outFile": "../build/facepunch.webgame.js",
+        "target": "es5"
+    },
+    "compileOnSave": true,
+    "include": [
+        "**/*.ts"
+    ]
+}

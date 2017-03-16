@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Facepunch.WebGame Test</title>
+        <script src="/facepunch.webgame.js"></script>
+        <script src="/testgame.js"></script>
+        <script>
+            window.onload = function() {
+                var game = new TestGame(document.getElementById("canvas-container"));
+                game.animate();
+            }
+        </script>
+    </head>
+    <body>
+        <h1>Facepunch.WebGame Test</h1>
+        <div id="canvas-container" style="height:768px"></div>
+    </body>
+</html>

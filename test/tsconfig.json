@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "noImplicitAny": false,
+        "noEmitOnError": false,
+        "removeComments": false,
+        "declaration": false,
+        "sourceMap": true,
+        "outFile": "../build/testgame.js",
+        "target": "es5"
+    },
+    "compileOnSave": true,
+    "include": [
+        "*.ts"
+    ]
+}
