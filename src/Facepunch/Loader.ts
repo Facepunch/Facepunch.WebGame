@@ -1,6 +1,5 @@
 namespace Facepunch {
     export interface ILoadable<TLoadable> {
-        shouldLoadBefore(other: TLoadable): boolean;
         loadNext(callback: (requeue: boolean) => void): void;
     }
 

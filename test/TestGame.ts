@@ -14,8 +14,6 @@ class TestGame extends Facepunch.WebGame.Game {
 
         const gl = this.getContext();
 
-        // Testing
-
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
     }
 }

@@ -5,6 +5,8 @@ namespace Facepunch {
         export class Game {
             canLockPointer = false;
 
+            readonly shaders: ShaderManager;
+
             private loaders: ILoader[] = [];
 
             private animateCallback: (time: number) => void;
@@ -24,6 +26,8 @@ namespace Facepunch {
                 this.canvas = document.createElement("canvas");
                 this.container.appendChild(this.canvas);
                 this.context = this.canvas.getContext("webgl");
+
+                this.shaders = new ShaderManager(this.context);
 
                 window.addEventListener("mousedown", evnt => {
                     this.heldMouseButtons[evnt.which] = true;

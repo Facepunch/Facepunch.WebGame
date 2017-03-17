@@ -1,0 +1,38 @@
+{
+    "target": "TEXTURE_2D",
+    "width": 512, "height": 512,
+    "params": [
+        {
+            "type": "INT",
+            "name": "TEXTURE_WRAP_S",
+            "value": "REPEAT"
+        },
+        {
+            "type": "INT",
+            "name": "TEXTURE_WRAP_T",
+            "value": "REPEAT"
+        },
+        {
+            "type": "INT",
+            "name": "TEXTURE_MIN_FILTER",
+            "value": "LINEAR_MIPMAP_LINEAR"
+        },
+        {
+            "type": "INT",
+            "name": "TEXTURE_MAG_FILTER",
+            "value": "LINEAR"
+        }
+    ],
+    "elements": [
+        { "level": 9, "color": { "r": 150, "g": 123, "b": 96 } },
+        { "level": 8, "url": "plywood.8.png" },
+        { "level": 7, "url": "plywood.7.png" },
+        { "level": 6, "url": "plywood.6.png" },
+        { "level": 5, "url": "plywood.5.png" },
+        { "level": 4, "url": "plywood.4.png" },
+        { "level": 3, "url": "plywood.3.png" },
+        { "level": 2, "url": "plywood.2.png" },
+        { "level": 1, "url": "plywood.1.png" },
+        { "level": 0, "url": "plywood.png" }
+    ]
+}
