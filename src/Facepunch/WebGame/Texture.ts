@@ -15,6 +15,99 @@ namespace Facepunch {
 
             abstract getTarget(): TextureTarget;
             abstract getHandle(): WebGLTexture;
+
+            dispose(): void {}
+        }
+
+        export enum TextureFormat {
+            Rgb = WebGLRenderingContext.RGB,
+            Rgba = WebGLRenderingContext.RGBA
+        }
+
+        export enum TextureDataType {
+            Uint8 = WebGLRenderingContext.UNSIGNED_BYTE,
+            Uint16 = WebGLRenderingContext.UNSIGNED_SHORT,
+            Uint32 = WebGLRenderingContext.UNSIGNED_INT,
+            Float = WebGLRenderingContext.FLOAT
+        }
+
+        export class RenderTexture extends Texture {
+            private readonly gl: WebGLRenderingContext;
+            private readonly target: TextureTarget;
+            private readonly format: TextureFormat;
+            private readonly type: TextureDataType;
+
+            private width: number;
+            private height: number;
+
+            private handle: WebGLTexture;
+
+            constructor(gl: WebGLRenderingContext, format: TextureFormat, type: TextureDataType,
+                width: number, height: number) {
+                super();
+
+                this.gl = gl;
+                this.target = TextureTarget.Texture2D;
+                this.format = format;
+                this.type = type;
+                this.handle = gl.createTexture();
+
+                this.setWrapMode(TextureWrapMode.ClampToEdge);
+                this.setFilter(TextureMinFilter.Linear, TextureMagFilter.Nearest);
+
+                this.resize(width, height);
+            }
+
+            setWrapMode(mode: TextureWrapMode): void;
+            setWrapMode(wrapS: TextureWrapMode, wrapT: TextureWrapMode): void;
+            setWrapMode(wrapS: TextureWrapMode, wrapT?: TextureWrapMode): void {
+                if (wrapT === undefined) wrapT = wrapS;
+
+                const gl = this.gl;
+                gl.bindTexture(this.target, this.handle);
+
+                gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, wrapS);
+                gl.texParameteri(this.target, gl.TEXTURE_WRAP_T, wrapT);
+                
+                gl.bindTexture(this.target, null);
+            }
+
+            setFilter(minFilter: TextureMinFilter, magFilter: TextureMagFilter): void {
+                const gl = this.gl;
+                gl.bindTexture(this.target, this.handle);
+
+                gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, minFilter);
+                gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, magFilter);
+                
+                gl.bindTexture(this.target, null);
+            }
+            
+            getTarget(): TextureTarget {
+                return this.gl.TEXTURE_2D;
+            }
+
+            getHandle(): WebGLTexture {
+                return this.handle;
+            }
+
+            resize(width: number, height: number): void {
+                if (this.width === width && this.height === height) return;
+
+                const gl = this.gl;
+
+                this.width = width;
+                this.height = height;
+
+                gl.bindTexture(this.target, this.handle);
+                gl.texImage2D(this.target, 0, this.format, width, height, 0, this.format, this.type, null);
+                gl.bindTexture(this.target, null);
+            }
+
+            dispose(): void {
+                if (this.handle === undefined) return;
+                this.gl.deleteTexture(this.handle);
+                this.handle = undefined;
+            }
         }
 
         export enum TextureTarget {
@@ -108,7 +201,7 @@ namespace Facepunch {
                 return this.handle;
             }
 
-            canLoadImmediately(index: number): boolean {
+            private canLoadImmediately(index: number): boolean {
                 return this.info.elements != null && index < this.info.elements.length && this.info.elements[index].url == null;
             }
 
@@ -123,6 +216,9 @@ namespace Facepunch {
                             break;
                         case gl.FLOAT:
                             gl.texParameteri(this.target, WebGl.decodeConst(param.name), WebGl.decodeConst(param.value));
+                            break;
+                        default:
+                            console.warn(`Unknown texture parameter type '${param.type}'.`);
                             break;
                     }
                 }

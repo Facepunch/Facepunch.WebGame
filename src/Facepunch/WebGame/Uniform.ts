@@ -192,7 +192,6 @@ namespace Facepunch {
             }
 
             set(tex: Texture): void {
-
                 if (tex == null || !tex.isLoaded()) {
                     tex = this.default;
                 }

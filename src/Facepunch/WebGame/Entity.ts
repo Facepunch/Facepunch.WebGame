@@ -31,7 +31,7 @@ namespace Facepunch {
                 this.inverseMatrixInvalid = true;
             }
 
-            getMatrix(target?: Matrix4): void {
+            getMatrix(target?: Matrix4): Matrix4 {
                 if (this.matrixInvalid) {
                     this.matrixInvalid = false;
                     this.matrix.setRotation(this.rotation);
@@ -39,22 +39,25 @@ namespace Facepunch {
                     this.matrix.translate(this.position);
                 }
 
-                if (target != null) target.copy(this.matrix);
+                if (target != null) {
+                    return target.copy(this.matrix);
+                } else {
+                    return this.matrix;
+                }
             }
 
-            getMatrixElements(): Float32Array {
-                this.getMatrix();
-                return this.matrix.elements;
-            }
-
-            getInverseMatrix(target?: Matrix4): void {
+            getInverseMatrix(target?: Matrix4): Matrix4 {
                 if (this.inverseMatrixInvalid) {
                     this.inverseMatrixInvalid = false;
                     this.getMatrix();
                     this.inverseMatrix.setInverse(this.matrix);
                 }
 
-                if (target != null) target.copy(this.inverseMatrix);
+                if (target != null) {
+                    return target.copy(this.inverseMatrix);
+                } else {
+                    return this.inverseMatrix;
+                }
             }
 
             setPosition(value: IVector3): void;

@@ -12,9 +12,9 @@ namespace Facepunch {
             private animateCallback: (time: number) => void;
             private lastAnimateCallback = 0;
 
-            private container: HTMLElement;
-            private canvas: HTMLCanvasElement;
-            private context: WebGLRenderingContext;
+            readonly container: HTMLElement;
+            readonly canvas: HTMLCanvasElement;
+            readonly context: WebGLRenderingContext;
             
             private heldKeys: boolean[] = new Array(128);
             private heldMouseButtons: boolean[] = new Array(8);
@@ -98,9 +98,7 @@ namespace Facepunch {
                 return document.pointerLockElement === this.container;
             }
 
-            getContext(): WebGLRenderingContext {
-                return this.context;
-            }
+            populateDrawList(drawList: DrawList, camera: Camera): void {}
 
             animate(dt?: number): void {
                 dt = dt || 0.01666667;
