@@ -24,7 +24,7 @@ namespace Facepunch {
                 this.game = game;
                 this.camera = camera;
                 this.drawList = new DrawList(this);
-                this.commandBuffer = new CommandBuffer(game.getContext());
+                this.commandBuffer = new CommandBuffer(game.context);
 
                 this.game.addDrawListInvalidationHandler((geom: boolean) => this.drawList.invalidate(geom));
             }

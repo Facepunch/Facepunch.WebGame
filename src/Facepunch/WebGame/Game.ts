@@ -63,6 +63,10 @@ namespace Facepunch {
                 this.onResize();
             }
 
+            getLastUpdateTime(): number {
+                return this.lastAnimateCallback;
+            }
+
             getWidth(): number {
                 return this.container.clientWidth;
             }

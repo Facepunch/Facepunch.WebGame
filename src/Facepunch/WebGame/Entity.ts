@@ -74,10 +74,18 @@ namespace Facepunch {
                 this.invalidateMatrices();
             }
 
-            getPosition(target: IVector3): void {
+            getPosition(target: IVector3): IVector3 {
                 target.x = this.position.x;
                 target.y = this.position.y;
                 target.z = this.position.z;
+                return target;
+            }
+
+            getPositionValues(target: Float32Array): Float32Array {
+                target[0] = this.position.x;
+                target[1] = this.position.y;
+                target[2] = this.position.z;
+                return target;
             }
 
             getDistanceToBounds(bounds: Box3): number {

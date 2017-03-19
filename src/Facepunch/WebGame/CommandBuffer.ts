@@ -89,22 +89,20 @@ namespace Facepunch {
             run(renderContext: RenderContext): void {
                 const gl = this.context;
 
-                this.game = renderContext.getGame();
+                this.game = renderContext.game;
 
-                this.cameraPos[0] = renderContext.origin.x;
-                this.cameraPos[1] = renderContext.origin.y;
-                this.cameraPos[2] = renderContext.origin.z;
+                renderContext.camera.getPositionValues(this.cameraPos);
 
-                this.timeParams[0] = renderContext.time;
+                this.timeParams[0] = this.game.getLastUpdateTime();
 
                 this.screenParams[0] = this.game.getWidth();
                 this.screenParams[1] = this.game.getHeight();
                 this.screenParams[2] = 1 / this.game.getWidth();
                 this.screenParams[3] = 1 / this.game.getHeight();
 
-                this.clipParams[0] = renderContext.near;
-                this.clipParams[1] = renderContext.far;
-                this.clipParams[2] = 1 / (renderContext.far - renderContext.near);
+                this.clipParams[0] = renderContext.camera.getNear();
+                this.clipParams[1] = renderContext.camera.getFar();
+                this.clipParams[2] = 1 / (this.clipParams[1] - this.clipParams[0]);
 
                 this.setParameter(CommandBufferParameter.InverseProjectionMatrix, renderContext.getInverseProjectionMatrix());
                 this.setParameter(CommandBufferParameter.ProjectionMatrix, renderContext.getProjectionMatrix());

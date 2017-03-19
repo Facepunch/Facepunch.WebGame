@@ -6,6 +6,9 @@ namespace Facepunch {
             private projectionInvalid = true;
             private projectionMatrix = new Matrix4();
 
+            abstract getNear(): number;
+            abstract getFar(): number;
+
             getProjectionMatrix(target: Matrix4): void {
                 if (this.projectionInvalid) {
                     this.projectionInvalid = false;
