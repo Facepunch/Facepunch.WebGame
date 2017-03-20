@@ -201,6 +201,11 @@ namespace Facepunch {
                 return this.handle;
             }
 
+            getLoadPriority(): number {
+                if (this.info == null || this.nextElement >= this.info.elements.length) return 0;
+                return 16 - this.info.elements[this.nextElement].level;
+            }
+
             private canLoadImmediately(index: number): boolean {
                 return this.info.elements != null && index < this.info.elements.length && this.info.elements[index].url == null;
             }
