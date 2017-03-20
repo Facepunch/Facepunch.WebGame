@@ -49,6 +49,10 @@ namespace Facepunch {
             RefractDepthMap
         }
 
+        export interface ICommandBufferParameterProvider {
+            populateCommandBufferParameters(buf: CommandBuffer): void;
+        }
+
         export class CommandBuffer {
             private context: WebGLRenderingContext;
 
@@ -79,11 +83,6 @@ namespace Facepunch {
                 this.parameters[param] = value;
             }
 
-            private cameraPos = new Float32Array(3);
-            private timeParams = new Float32Array(4);
-            private screenParams = new Float32Array(4);
-            private clipParams = new Float32Array(4);
-
             private game: Game;
 
             run(renderContext: RenderContext): void {
@@ -91,33 +90,7 @@ namespace Facepunch {
 
                 this.game = renderContext.game;
 
-                renderContext.camera.getPositionValues(this.cameraPos);
-
-                this.timeParams[0] = this.game.getLastUpdateTime();
-
-                this.screenParams[0] = this.game.getWidth();
-                this.screenParams[1] = this.game.getHeight();
-                this.screenParams[2] = 1 / this.game.getWidth();
-                this.screenParams[3] = 1 / this.game.getHeight();
-
-                this.clipParams[0] = renderContext.camera.getNear();
-                this.clipParams[1] = renderContext.camera.getFar();
-                this.clipParams[2] = 1 / (this.clipParams[1] - this.clipParams[0]);
-
-                this.setParameter(CommandBufferParameter.InverseProjectionMatrix, renderContext.getInverseProjectionMatrix());
-                this.setParameter(CommandBufferParameter.ProjectionMatrix, renderContext.getProjectionMatrix());
-                this.setParameter(CommandBufferParameter.ViewMatrix, renderContext.getViewMatrix());
-                this.setParameter(CommandBufferParameter.InverseViewMatrix, renderContext.getInverseViewMatrix());
-                this.setParameter(CommandBufferParameter.CameraPos, this.cameraPos);
-                this.setParameter(CommandBufferParameter.TimeParams, this.timeParams);
-                this.setParameter(CommandBufferParameter.ScreenParams, this.screenParams);
-                this.setParameter(CommandBufferParameter.ClipParams, this.clipParams);
-
-                const colorTexture = renderContext.getOpaqueColorTexture();
-                const depthTexture = renderContext.getOpaqueDepthTexture();
-
-                this.setParameter(CommandBufferParameter.RefractColorMap, colorTexture);
-                this.setParameter(CommandBufferParameter.RefractDepthMap, depthTexture);
+                renderContext.populateCommandBufferParameters(this);
 
                 for (let i = 0, iEnd = this.commands.length; i < iEnd; ++i) {
                     const command = this.commands[i];

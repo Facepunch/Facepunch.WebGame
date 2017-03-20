@@ -1,15 +1,10 @@
 namespace Facepunch {
     export namespace WebGame {
-        export class RenderContext {
+        export class RenderContext implements ICommandBufferParameterProvider {
             private static readonly identityMatrix = new Matrix4().setIdentity();
 
             readonly game: Game;
             readonly camera: Camera;
-
-            readonly projectionMatrix = new Matrix4();
-            readonly inverseProjectionMatrix = new Matrix4();
-            readonly viewMatrix = new Matrix4();
-            readonly inverseViewMatrix = new Matrix4();
 
             private modelMatrix = new Matrix4();
             
@@ -51,11 +46,6 @@ namespace Facepunch {
             }
 
             render(): void {
-                this.camera.getProjectionMatrix(this.projectionMatrix);
-                this.inverseProjectionMatrix.setInverse(this.projectionMatrix);
-                this.camera.getMatrix(this.inverseViewMatrix);
-                this.camera.getInverseMatrix(this.viewMatrix);
-
                 if (this.geometryInvalid) {
                     this.geometryInvalid = false;
                     this.commandBufferInvalid = true;
@@ -74,10 +64,18 @@ namespace Facepunch {
                 this.commandBuffer.run(this);
             }
 
+            populateCommandBufferParameters(buf: CommandBuffer): void {
+                this.game.populateCommandBufferParameters(buf);
+                this.camera.populateCommandBufferParameters(buf);
+
+                buf.setParameter(CommandBufferParameter.RefractColorMap, this.getOpaqueColorTexture());
+                buf.setParameter(CommandBufferParameter.RefractDepthMap, this.getOpaqueDepthTexture());
+            }
+
             private setupFrameBuffers(): void {
                 if (this.opaqueFrameBuffer !== undefined) return;
 
-                const gl = this.game.getContext();
+                const gl = this.game.context;
 
                 const width = this.game.getWidth();
                 const height = this.game.getHeight();

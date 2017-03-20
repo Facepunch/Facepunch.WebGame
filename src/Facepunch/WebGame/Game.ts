@@ -2,10 +2,12 @@
 
 namespace Facepunch {
     export namespace WebGame {
-        export class Game {
+        export class Game implements ICommandBufferParameterProvider {
             canLockPointer = false;
 
             readonly shaders: ShaderManager;
+
+            readonly textureLoader: TextureLoader;
 
             private loaders: ILoader[] = [];
 
@@ -28,6 +30,8 @@ namespace Facepunch {
                 this.context = this.canvas.getContext("webgl");
 
                 this.shaders = new ShaderManager(this.context);
+
+                this.textureLoader = this.addLoader(new TextureLoader(this.context));
 
                 window.addEventListener("mousedown", evnt => {
                     this.heldMouseButtons[evnt.which] = true;
@@ -143,6 +147,21 @@ namespace Facepunch {
 
             protected onUpdateFrame(dt: number): void {}
             protected onRenderFrame(dt: number): void {}
+            
+            private readonly timeParams = new Float32Array(4);
+            private readonly screenParams = new Float32Array(4);
+
+            populateCommandBufferParameters(buf: CommandBuffer): void {
+                this.timeParams[0] = this.getLastUpdateTime();
+
+                this.screenParams[0] = this.getWidth();
+                this.screenParams[1] = this.getHeight();
+                this.screenParams[2] = 1 / this.getWidth();
+                this.screenParams[3] = 1 / this.getHeight();
+
+                buf.setParameter(CommandBufferParameter.TimeParams, this.timeParams);
+                buf.setParameter(CommandBufferParameter.ScreenParams, this.screenParams);
+            }
         }
     }
 }

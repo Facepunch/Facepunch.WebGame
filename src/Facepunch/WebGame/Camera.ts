@@ -2,27 +2,68 @@
 
 namespace Facepunch {
     export namespace WebGame {
-        export abstract class Camera extends Entity {
+        export abstract class Camera extends Entity implements ICommandBufferParameterProvider {
             private projectionInvalid = true;
             private projectionMatrix = new Matrix4();
+            private inverseProjectionInvalid = true;
+            private inverseProjectionMatrix = new Matrix4();
 
             abstract getNear(): number;
             abstract getFar(): number;
 
-            getProjectionMatrix(target: Matrix4): void {
+            getProjectionMatrix(target?: Matrix4): Matrix4 {
                 if (this.projectionInvalid) {
                     this.projectionInvalid = false;
                     this.onUpdateProjectionMatrix(this.projectionMatrix);
                 }
 
-                target.copy(this.projectionMatrix);
+                if (target != null) {
+                    target.copy(this.projectionMatrix);
+                    return target;
+                }
+
+                return this.projectionMatrix;
+            }
+
+            getInverseProjectionMatrix(target?: Matrix4): Matrix4 {
+                if (this.inverseProjectionInvalid) {
+                    this.inverseProjectionInvalid = false;
+                    this.inverseProjectionMatrix.setInverse(this.getProjectionMatrix());
+                }
+
+                if (target != null) {
+                    target.copy(this.inverseProjectionMatrix);
+                    return target;
+                }
+
+                return this.inverseProjectionMatrix;
             }
 
             protected invalidateProjectionMatrix(): void {
                 this.projectionInvalid = true;
+                this.inverseProjectionInvalid = true;
             }
 
             protected abstract onUpdateProjectionMatrix(matrix: Matrix4): void;
+            
+            private cameraPosParams = new Float32Array(3);
+            private clipParams = new Float32Array(4);
+
+            populateCommandBufferParameters(buf: CommandBuffer): void {
+                this.getPositionValues(this.cameraPosParams);
+
+                this.clipParams[0] = this.getNear();
+                this.clipParams[1] = this.getFar();
+                this.clipParams[2] = 1 / (this.clipParams[1] - this.clipParams[0]);
+
+                buf.setParameter(CommandBufferParameter.CameraPos, this.cameraPosParams);
+                buf.setParameter(CommandBufferParameter.ClipParams, this.clipParams);
+
+                buf.setParameter(CommandBufferParameter.ProjectionMatrix, this.getProjectionMatrix().elements);
+                buf.setParameter(CommandBufferParameter.InverseProjectionMatrix, this.getInverseProjectionMatrix().elements);
+                buf.setParameter(CommandBufferParameter.ViewMatrix, this.getInverseMatrix().elements);
+                buf.setParameter(CommandBufferParameter.InverseViewMatrix, this.getMatrix().elements);
+            }
         }
 
         export class PerspectiveCamera extends Camera {

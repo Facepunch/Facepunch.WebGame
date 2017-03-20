@@ -41,9 +41,9 @@ namespace Facepunch {
 
                 if (target != null) {
                     return target.copy(this.matrix);
-                } else {
-                    return this.matrix;
                 }
+
+                return this.matrix;
             }
 
             getInverseMatrix(target?: Matrix4): Matrix4 {
@@ -55,9 +55,9 @@ namespace Facepunch {
 
                 if (target != null) {
                     return target.copy(this.inverseMatrix);
-                } else {
-                    return this.inverseMatrix;
                 }
+                
+                return this.inverseMatrix;
             }
 
             setPosition(value: IVector3): void;
