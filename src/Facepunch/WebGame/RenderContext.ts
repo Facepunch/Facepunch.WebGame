@@ -6,7 +6,7 @@ namespace Facepunch {
             readonly game: Game;
             readonly camera: Camera;
 
-            private modelMatrix = new Matrix4();
+            private modelMatrix = RenderContext.identityMatrix;
             
             private drawList: DrawList;
             private geometryInvalid = true;
@@ -43,6 +43,10 @@ namespace Facepunch {
                 } else {
                     this.modelMatrix = model.getMatrix();
                 }
+            }
+
+            getModelMatrixElements(): Float32Array {
+                return this.modelMatrix.elements;
             }
 
             render(): void {
