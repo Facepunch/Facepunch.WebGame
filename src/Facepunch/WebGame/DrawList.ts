@@ -9,12 +9,7 @@ namespace Facepunch {
             private opaque: MeshHandle[] = [];
             private translucent: MeshHandle[] = [];
 
-            private lastParent: Entity;
-            private lastGroup: MeshGroup;
-            private lastVertexOffset: number;
-            private lastProgram: ShaderProgram;
-            private lastMaterial: Material;
-            private lastIndex: number;
+            private lastHandle: MeshHandle;
             private canRender: boolean;
 
             private hasRefraction: boolean;
@@ -61,7 +56,7 @@ namespace Facepunch {
                 let changedProgram = false;
                 let changedTransform = false;
 
-                if (this.lastParent !== handle.parent) {
+                if (this.lastHandle.entity !== handle.entity) {
                     this.lastParent = handle.parent;
                     context.setModelTransform(this.lastParent);
                     changedTransform = true;
@@ -118,7 +113,9 @@ namespace Facepunch {
                     this.lastGroup.bufferAttribPointers(buf, this.lastProgram, this.lastVertexOffset);
                 }
 
-                this.lastGroup.bufferRenderElements(buf, handle.drawMode, handle.indexOffset, handle.indexCount);
+                handle.group.bufferRenderElements(buf, handle.drawMode, handle.indexOffset, handle.indexCount);
+
+                this.lastHandle = handle;
             }
 
             private static compareHandles(a: MeshHandle, b: MeshHandle): number {
@@ -155,12 +152,7 @@ namespace Facepunch {
             }
 
             appendToBuffer(buf: CommandBuffer, context: RenderContext): void {
-                this.lastParent = undefined;
-                this.lastGroup = undefined;
-                this.lastVertexOffset = undefined;
-                this.lastProgram = undefined;
-                this.lastMaterial = undefined;
-                this.lastIndex = undefined;
+                this.lastHandle = MeshHandle.undefinedHandle;
 
                 if (this.invalid) this.buildHandleList();
 
@@ -181,8 +173,8 @@ namespace Facepunch {
                     this.bufferHandle(buf, this.translucent[i], context);
                 }
 
-                if (this.lastProgram !== undefined) {
-                    this.lastProgram.bufferDisableMeshComponents(buf);
+                if (this.lastHandle.material !== undefined) {
+                    this.lastHandle.material.program.bufferDisableMeshComponents(buf);
                 }
             }
         }

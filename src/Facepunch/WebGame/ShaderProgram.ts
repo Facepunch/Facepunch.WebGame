@@ -52,6 +52,10 @@ namespace Facepunch {
                 return this.sortIndex - other.sortIndex;
             }
 
+            compareMaterials(a: Material, b: Material): number {
+                return a.sortIndex - b.sortIndex;
+            }
+
             getProgram(): WebGLProgram {
                 if (this.program === undefined) {
                     return this.program = this.getContext().createProgram();

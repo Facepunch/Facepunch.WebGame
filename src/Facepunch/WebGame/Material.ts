@@ -22,7 +22,7 @@ namespace Facepunch {
 
             readonly sortIndex: number;
 
-            readonly properties = {};
+            readonly properties: any = {};
             
             readonly game: Game;
             readonly program: ShaderProgram;
@@ -56,10 +56,6 @@ namespace Facepunch {
                         this.properties[info.name] = this.game.textureLoader.load(info.value as string);
                         break;
                 }
-            }
-
-            getProgram(): ShaderProgram {
-                return this.program;
             }
         }
     }
