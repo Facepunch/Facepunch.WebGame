@@ -3,8 +3,14 @@ namespace Facepunch {
         export enum AttributeType {
             Float = WebGLRenderingContext.FLOAT
         }
+
+        export interface IVertexAttribute {
+            readonly size: number;
+            readonly type: AttributeType | string;
+            readonly normalized?: boolean;
+        }
         
-        export class VertexAttribute {
+        export class VertexAttribute implements IVertexAttribute {
             private static nextId = 1;
 
             static readonly position = new VertexAttribute(3, AttributeType.Float, false);
@@ -14,13 +20,25 @@ namespace Facepunch {
             static readonly rgb = new VertexAttribute(3, AttributeType.Float, false);
             static readonly rgba = new VertexAttribute(4, AttributeType.Float, false);
 
-            readonly id: number;
+            static compare(a: IVertexAttribute, b: IVertexAttribute): number {
+                const sizeComp = a.size - b.size;
+                if (sizeComp !== 0) return sizeComp;
+                const typeComp = WebGl.decodeConst(a.type) - WebGl.decodeConst(b.type);
+                if (typeComp !== 0) return typeComp;
+                return (a.normalized ? 1 : 0) - (b.normalized ? 1 : 0);
+            }
+
+            create(attrib: IVertexAttribute): VertexAttribute {
+                return new VertexAttribute(attrib.size, WebGl.decodeConst(attrib.type), attrib.normalized === true);
+            }
+
+            readonly id = VertexAttribute.nextId++;
+
             readonly size: number;
             readonly type: AttributeType;
             readonly normalized: boolean;
 
             private constructor(size: number, type: AttributeType, normalized: boolean) {
-                this.id = VertexAttribute.nextId++;
                 this.size = size;
                 this.type = type;
                 this.normalized = normalized;

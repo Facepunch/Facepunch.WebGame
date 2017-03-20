@@ -32,6 +32,23 @@ namespace Facepunch {
         }
     }
 
+    export class Utils {
+        static decompress<T>(value: string | T): T {
+            if (value == null) return null;
+            return typeof value === "string"
+                ? JSON.parse(LZString.decompressFromBase64(value))
+                : value as T;
+        }
+
+        static decompressOrClone<T>(value: string | T[]): T[]
+        {
+            if (value == null) return null;
+            return typeof value === "string"
+                ? JSON.parse(LZString.decompressFromBase64(value))
+                : (value as T[]).slice(0);
+        }
+    }
+
     export class WebGl {
         static decodeConst<TEnum extends number>(valueOrIdent: TEnum | string): TEnum {
             return (typeof valueOrIdent === "number" ? valueOrIdent : WebGLRenderingContext[valueOrIdent]) as TEnum;
