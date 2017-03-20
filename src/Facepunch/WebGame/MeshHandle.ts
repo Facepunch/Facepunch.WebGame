@@ -9,7 +9,8 @@ namespace Facepunch {
         export class MeshHandle {
             static readonly undefinedHandle = new MeshHandle(undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
-            readonly entity: Entity;
+            readonly transform: Matrix4;
+            readonly program: ShaderProgram;
             readonly material: Material;
             readonly group: MeshGroup;
             readonly vertexOffset: number;
@@ -17,10 +18,11 @@ namespace Facepunch {
             readonly indexOffset: number;
             readonly indexCount: number;
 
-            constructor(entity: Entity, material: Material, group: MeshGroup,
+            constructor(transform: Matrix4, material: Material, group: MeshGroup,
                 vertexOffset: number, drawMode: DrawMode,
                 indexOffset: number, indexCount: number) {
-                this.entity = entity;
+                this.transform = transform;
+                this.program = material == null ? undefined : material.program;
                 this.material = material;
                 this.group = group;
                 this.vertexOffset = vertexOffset;
@@ -28,19 +30,22 @@ namespace Facepunch {
                 this.indexCount = indexCount;
             }
 
-            clone(newParent: Entity): MeshHandle {
-                return new MeshHandle(newParent, this.material, this.group,
+            clone(newTransform: Matrix4): MeshHandle {
+                return new MeshHandle(newTransform, this.material, this.group,
                     this.vertexOffset, this.drawMode, this.indexOffset, this.indexCount);
             }
 
             compareTo(other: MeshHandle): number {
-                const progComp = this.material.program.compareTo(other.material.program);
+                const progComp = this.program.compareTo(other.program);
                 if (progComp !== 0) return progComp;
 
-                const entityComp = this.entity == other.entity ? 0 : this.entity == null ? -1 : other.entity == null ? 1 : this.entity.compareTo(other.entity);
-                if (entityComp !== 0) return entityComp;
+                if (this.transform !== other.transform) {
+                    if (this.transform == null) return -1;
+                    if (other.transform == null) return 1;
+                    return this.transform.id - other.transform.id;
+                }
 
-                const matComp = this.material.program.compareMaterials(this.material, other.material);
+                const matComp = this.program.compareMaterials(this.material, other.material);
                 if (matComp !== 0) return matComp;
 
                 const groupComp = this.group.compareTo(other.group);

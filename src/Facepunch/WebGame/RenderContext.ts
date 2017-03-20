@@ -1,12 +1,8 @@
 namespace Facepunch {
     export namespace WebGame {
         export class RenderContext implements ICommandBufferParameterProvider {
-            private static readonly identityMatrix = new Matrix4().setIdentity();
-
             readonly game: Game;
             readonly camera: Camera;
-
-            private modelMatrix = RenderContext.identityMatrix;
             
             private drawList: DrawList;
             private geometryInvalid = true;
@@ -35,18 +31,6 @@ namespace Facepunch {
             invalidate(drawList: boolean = true): void {
                 this.commandBufferInvalid = true;
                 if (drawList) this.drawList.invalidate(true);
-            }
-
-            setModelTransform(model: Entity): void {
-                if (model == null) {
-                    this.modelMatrix = RenderContext.identityMatrix;
-                } else {
-                    this.modelMatrix = model.getMatrix();
-                }
-            }
-
-            getModelMatrixElements(): Float32Array {
-                return this.modelMatrix.elements;
             }
 
             render(): void {

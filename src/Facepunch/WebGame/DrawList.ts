@@ -1,6 +1,8 @@
 namespace Facepunch {
     export namespace WebGame {
         export class DrawList {
+            private static readonly identityMatrix = new Matrix4().setIdentity();
+
             readonly context: RenderContext;
             readonly game: Game;
 
@@ -10,8 +12,6 @@ namespace Facepunch {
             private translucent: MeshHandle[] = [];
 
             private lastHandle: MeshHandle;
-            private canRender: boolean;
-
             private hasRefraction: boolean;
 
             constructor(context: RenderContext) {
@@ -56,61 +56,39 @@ namespace Facepunch {
                 let changedProgram = false;
                 let changedTransform = false;
 
-                if (this.lastHandle.entity !== handle.entity) {
-                    this.lastParent = handle.parent;
-                    context.setModelTransform(this.lastParent);
+                if (this.lastHandle.transform !== handle.transform) {
                     changedTransform = true;
                 }
 
-                if (this.lastMaterial !== handle.material) {
+                if (this.lastHandle.material !== handle.material) {
                     changedMaterial = true;
-                    this.lastMaterial = handle.material;
+                    changedProgram = this.lastHandle.program !== handle.program;
+                    changedTransform = changedTransform || changedProgram;
                 }
-
-                if (changedMaterial) {
-                    if (this.lastMaterial == null) {
-                        this.canRender = false;
-                        return;
-                    }
-
-                    if (this.lastProgram !== this.lastMaterial.getProgram())
-                    {
-                        if (this.lastProgram !== undefined) {
-                            this.lastProgram.bufferDisableMeshComponents(buf);
-                        }
-
-                        this.lastProgram = this.lastMaterial.getProgram();
-
-                        changedProgram = true;
-                        changedTransform = true;
-                    }
-
-                    this.canRender = this.lastProgram.isCompiled() && this.lastMaterial.enabled;
-                }
-
-                if (!this.canRender) return;
 
                 if (changedProgram) {
-                    this.lastProgram.bufferSetup(buf, context);
+                    if (this.lastHandle.program !== undefined) {
+                        this.lastHandle.program.bufferDisableMeshComponents(buf);
+                    }
+
+                    handle.program.bufferSetup(buf, context);
                 }
 
                 if (changedMaterial) {
-                    this.lastProgram.bufferMaterial(buf, this.lastMaterial);
+                    handle.program.bufferMaterial(buf, handle.material);
                 }
 
                 if (changedTransform) {
-                    this.lastProgram.bufferModelMatrix(buf, context.getModelMatrixElements());
+                    handle.program.bufferModelMatrix(buf, handle.transform == null
+                        ? DrawList.identityMatrix.elements : handle.transform.elements );
                 }
 
-                if (this.lastGroup !== handle.group || changedProgram) {
-                    this.lastGroup = handle.group;
-                    this.lastVertexOffset = undefined;
-                    this.lastGroup.bufferBindBuffers(buf, this.lastProgram);
+                if (this.lastHandle.group !== handle.group || changedProgram) {
+                    handle.group.bufferBindBuffers(buf, handle.program);
                 }
 
-                if (this.lastVertexOffset !== handle.vertexOffset) {
-                    this.lastVertexOffset = handle.vertexOffset;
-                    this.lastGroup.bufferAttribPointers(buf, this.lastProgram, this.lastVertexOffset);
+                if (this.lastHandle.vertexOffset !== handle.vertexOffset) {
+                    handle.group.bufferAttribPointers(buf, handle.program, handle.vertexOffset);
                 }
 
                 handle.group.bufferRenderElements(buf, handle.drawMode, handle.indexOffset, handle.indexCount);
@@ -137,6 +115,8 @@ namespace Facepunch {
                         const handle = handles[j];
                         if (handle.indexCount === 0) continue;
                         if (handle.material == null) continue;
+                        if (!handle.material.enabled) continue;
+                        if (!handle.material.program.isCompiled()) continue;
 
                         if (handle.material.properties.translucent || handle.material.properties.refract) {
                             if (handle.material.properties.refract) this.hasRefraction = true;

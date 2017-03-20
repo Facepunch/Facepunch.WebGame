@@ -12,7 +12,7 @@ namespace Facepunch {
                 if (this.meshHandles == null) this.meshHandles = [];
 
                 for (let i = 0, iEnd = handles.length; i < iEnd; ++i) {
-                    this.meshHandles.push(handles[i].clone(!this.isStatic ? this.entity : null));
+                    this.meshHandles.push(handles[i].clone(!this.isStatic && this.entity != null ? this.entity.getMatrix() : null));
                 }
 
                 this.invalidateDrawLists();

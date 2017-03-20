@@ -298,6 +298,10 @@ namespace Facepunch {
     }
 
     export class Matrix4 {
+        private static nextId = 1;
+
+        readonly id = Matrix4.nextId++;
+
         elements: Float32Array = new Float32Array(4 * 4);
 
         setIdentity(): this {
@@ -309,11 +313,22 @@ namespace Facepunch {
             return this;
         }
 
-        copy(mat: Matrix4): this {
-            const m = mat.elements;
-            const n = this.elements;
+        compareTo(other: Matrix4): number {
+            const m = this.elements;
+            const n = other.elements;
 
-            for (let i = 0; i < 16; ++i) n[i] = m[i];
+            for (let i = 0xf; i >= 0; --i) {
+                if (m[i] !== n[i]) return m[i] - n[i];
+            }
+
+            return 0;
+        }
+
+        copy(mat: Matrix4): this {
+            const m = this.elements;
+            const n = mat.elements;
+
+            for (let i = 0; i < 16; ++i) m[i] = n[i];
 
             return this;
         }
