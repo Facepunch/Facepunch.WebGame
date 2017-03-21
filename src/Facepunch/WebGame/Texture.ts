@@ -32,7 +32,7 @@ namespace Facepunch {
         }
 
         export class RenderTexture extends Texture {
-            private readonly gl: WebGLRenderingContext;
+            private readonly context: WebGLRenderingContext;
             private readonly target: TextureTarget;
             private readonly format: TextureFormat;
             private readonly type: TextureDataType;
@@ -42,15 +42,15 @@ namespace Facepunch {
 
             private handle: WebGLTexture;
 
-            constructor(gl: WebGLRenderingContext, format: TextureFormat, type: TextureDataType,
+            constructor(context: WebGLRenderingContext, format: TextureFormat, type: TextureDataType,
                 width: number, height: number) {
                 super();
 
-                this.gl = gl;
+                this.context = context;
                 this.target = TextureTarget.Texture2D;
                 this.format = format;
                 this.type = type;
-                this.handle = gl.createTexture();
+                this.handle = context.createTexture();
 
                 this.setWrapMode(TextureWrapMode.ClampToEdge);
                 this.setFilter(TextureMinFilter.Linear, TextureMagFilter.Nearest);
@@ -63,7 +63,7 @@ namespace Facepunch {
             setWrapMode(wrapS: TextureWrapMode, wrapT?: TextureWrapMode): void {
                 if (wrapT === undefined) wrapT = wrapS;
 
-                const gl = this.gl;
+                const gl = this.context;
                 gl.bindTexture(this.target, this.handle);
 
                 gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, wrapS);
@@ -73,7 +73,7 @@ namespace Facepunch {
             }
 
             setFilter(minFilter: TextureMinFilter, magFilter: TextureMagFilter): void {
-                const gl = this.gl;
+                const gl = this.context;
                 gl.bindTexture(this.target, this.handle);
 
                 gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, minFilter);
@@ -83,7 +83,7 @@ namespace Facepunch {
             }
             
             getTarget(): TextureTarget {
-                return this.gl.TEXTURE_2D;
+                return this.context.TEXTURE_2D;
             }
 
             getHandle(): WebGLTexture {
@@ -93,7 +93,7 @@ namespace Facepunch {
             resize(width: number, height: number): void {
                 if (this.width === width && this.height === height) return;
 
-                const gl = this.gl;
+                const gl = this.context;
 
                 this.width = width;
                 this.height = height;
@@ -105,7 +105,7 @@ namespace Facepunch {
 
             dispose(): void {
                 if (this.handle === undefined) return;
-                this.gl.deleteTexture(this.handle);
+                this.context.deleteTexture(this.handle);
                 this.handle = undefined;
             }
         }
@@ -176,7 +176,7 @@ namespace Facepunch {
         }
 
         export class TextureLoadable extends Texture implements ILoadable {
-            private readonly gl: WebGLRenderingContext;
+            private readonly context: WebGLRenderingContext;
             private readonly url: string;            
 
             private info: ITextureInfo;
@@ -185,10 +185,10 @@ namespace Facepunch {
             private handle: WebGLTexture;
             private target: TextureTarget;
 
-            constructor(gl: WebGLRenderingContext, url: string) {
+            constructor(context: WebGLRenderingContext, url: string) {
                 super();
 
-                this.gl = gl;
+                this.context = context;
                 this.url = url;
             }
 
@@ -211,7 +211,7 @@ namespace Facepunch {
             }
 
             private applyTexParameters(): void {
-                const gl = this.gl;
+                const gl = this.context;
 
                 for (let i = 0; i < this.info.params.length; ++i) {
                     const param = this.info.params[i];
@@ -232,7 +232,7 @@ namespace Facepunch {
             private getOrCreateHandle(): WebGLTexture {
                 if (this.handle !== undefined) return this.handle;
 
-                const gl = this.gl;
+                const gl = this.context;
 
                 this.handle = gl.createTexture();
 
@@ -272,14 +272,14 @@ namespace Facepunch {
                     values[index + 3] = a;
                 }
 
-                const gl = this.gl;
+                const gl = this.context;
                 gl.texImage2D(target, level, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, values);
 
                 return true;
             }
 
             private loadImageElement(target: TextureTarget, level: number, image: HTMLImageElement): boolean {
-                const gl = this.gl;
+                const gl = this.context;
                 gl.texImage2D(target, level, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
                 return true;
             }
@@ -288,7 +288,7 @@ namespace Facepunch {
                 const target = WebGl.decodeConst(element.target != undefined ? element.target : this.info.target);
                 const handle = this.getOrCreateHandle();
 
-                const gl = this.gl;
+                const gl = this.context;
 
                 gl.bindTexture(this.target, handle);
 
@@ -333,8 +333,9 @@ namespace Facepunch {
 
                 const info = this.info;
                 const element = info.elements[this.nextElement++];
+                const url = Http.getAbsUrl(element.url, this.url);
 
-                Http.getImage(element.url, image => {
+                Http.getImage(url, image => {
                     this.loadElement(element, image);
 
                     while (this.canLoadImmediately(this.nextElement)) {

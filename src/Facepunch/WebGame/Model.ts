@@ -63,7 +63,8 @@ namespace Facepunch {
                     const materials: Material[] = [];
 
                     for (let i = 0, iEnd = info.materials.length; i < iEnd; ++i) {
-                        materials[i] = this.game.materialLoader.load(info.materials[i]);
+                        const matUrl = Http.getAbsUrl(info.materials[i], this.url);
+                        materials[i] = this.game.materialLoader.load(matUrl);
                     }
 
                     this.handles = this.game.meshes.addMeshData(info.meshData, i => materials[i]);

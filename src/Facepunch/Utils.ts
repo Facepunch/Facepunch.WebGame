@@ -30,6 +30,26 @@ namespace Facepunch {
                 image.addEventListener("abort", ev => failure(Http.cancelled));
             }
         }
+
+        static isAbsUrl(url: string): boolean {
+            return /^(http[s]:\/)?\//i.test(url);
+        }
+
+        static getAbsUrl(url: string, relativeTo: string): string {
+            if (Http.isAbsUrl(url)) return url;
+            if (!Http.isAbsUrl(relativeTo)) {
+                throw new Error("Expected relativeTo to be an absolute URL.");
+            }
+
+            if (relativeTo.charAt(relativeTo.length - 1) === "/") {
+                return `${relativeTo}${url}`;
+            }
+
+            const lastSep = relativeTo.lastIndexOf("/");
+            const prefix = relativeTo.substr(0, lastSep + 1);
+
+            return `${prefix}${url}`;
+        }
     }
 
     export class Utils {

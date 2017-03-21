@@ -51,7 +51,8 @@ namespace Facepunch {
                         this.properties[info.name] = info.value as boolean | number;
                         break;
                     case MaterialPropertyType.TextureUrl:
-                        this.properties[info.name] = this.game.textureLoader.load(info.value as string);
+                        const texUrl = Http.getAbsUrl(info.value as string, this.url);
+                        this.properties[info.name] = this.game.textureLoader.load(texUrl);
                         break;
                 }
             }

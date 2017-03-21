@@ -6,7 +6,7 @@ namespace Facepunch {
             readonly context: RenderContext;
             readonly game: Game;
 
-            private items: DrawListItem[] = [];
+            private items: IDrawListItem[] = [];
             private invalid: boolean;
             private opaque: MeshHandle[] = [];
             private translucent: MeshHandle[] = [];
@@ -33,7 +33,7 @@ namespace Facepunch {
                 return this.opaque.length + this.translucent.length;
             }
 
-            addItem(item: DrawListItem): void {
+            addItem(item: IDrawListItem): void {
                 this.items.push(item);
                 this.updateItem(item);
                 item.onAddToDrawList(this);
@@ -47,7 +47,7 @@ namespace Facepunch {
                 this.context.invalidate();
             }
 
-            updateItem(item: DrawListItem): void {
+            updateItem(item: IDrawListItem): void {
                 this.invalidate(true);
             }
 
