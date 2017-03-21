@@ -10,12 +10,14 @@ namespace Facepunch {
             readonly id = ShaderProgram.nextId++;
             readonly context: WebGLRenderingContext;
 
-            private manager: ShaderManager;
             private program: WebGLProgram;
             private compiled = false;
 
-            private vertSource: string;
-            private fragSource: string;
+            private readonly vertIncludes: string[] = [];
+            private readonly fragIncludes: string[] = [];
+
+            private fullVertSource = false;
+            private fullFragSource = false;
 
             private nextTextureUnit = 0;
 
@@ -89,45 +91,56 @@ namespace Facepunch {
                 return uniform;
             }
 
-            private static includeRegex = /^\s*#include\s+\"([^"]+)\"\s*$/m;
-
-            private getShaderSource(url: string, action: (source: string) => void): void {
-                Http.getString(`${url}?v=${Math.random()}`,
-                    (source: string) => {
-                        const match = source.match(ShaderProgram.includeRegex);
-
-                        if (match == null) {
-                            action(source);
-                            return;
-                        }
-
-                        const fileName = match[1];
-                        const dirName = url.substr(0, url.lastIndexOf("/") + 1);
-
-                        this.getShaderSource(`${dirName}${fileName}`,
-                            include => action(source.replace(match[0], include)));
-                    });
-            }
-
-            protected loadShaderSourceFromUrl(type: number, url: string): void {
-                this.getShaderSource(url, source => this.loadShaderSource(type, source));
-            }
-
             private hasAllSources(): boolean {
-                return this.vertSource !== undefined && this.fragSource !== undefined;
+                return this.fullFragSource && this.fullVertSource;
             }
 
-            protected loadShaderSource(type: number, source: string): void {
+            private static formatSource(source: string): string {
+                const lines = source.replace(/\r\n/g, "\n").split("\n");
+
+                while (lines.length > 0 && lines[lines.length - 1].trim().length === 0) {
+                    lines.splice(lines.length - 1, 1);
+                }
+
+                while (lines.length > 0 && lines[0].trim().length === 0) {
+                    lines.splice(0, 1);
+                }
+
+                if (lines.length === 0) return "";
+
+                let indentLength = 0;
+                const firstLine = lines[0];
+                for (let i = 0, iEnd = firstLine.length; i < iEnd; ++i) {
+                    if (firstLine.charAt(i) === " ") {
+                        ++indentLength;
+                    } else break;
+                }
+
+                for (let i = 0, iEnd = lines.length; i < iEnd; ++i) {
+                    const line = lines[i];
+                    if (line.substr(0, indentLength).trim().length === 0) {
+                        lines[i] = line.substr(indentLength);
+                    }
+                }
+
+                return lines.join("\r\n");
+            }
+
+            protected includeShaderSource(type: number, source: string): void {
+                source = ShaderProgram.formatSource(source);
+
                 switch (type) {
                 case WebGLRenderingContext.VERTEX_SHADER:
-                    this.vertSource = source;
+                    this.vertIncludes.push(source);
                     break;
-                case WebGLRenderingContext.FRAGMENT_SHADER:
-                    this.fragSource = source;
+                case WebGLRenderingContext.VERTEX_SHADER:
+                    this.vertIncludes.push(source);
                     break;
-                default:
-                    return;
                 }
+            }
+
+            protected setShaderSource(type: number, source: string): void {
+                this.includeShaderSource(type, source);
 
                 if (this.hasAllSources()) {
                     this.compile();
@@ -165,8 +178,11 @@ namespace Facepunch {
             private compile(): void {
                 const gl = this.context;
 
-                const vert = this.compileShader(gl.VERTEX_SHADER, this.vertSource);
-                const frag = this.compileShader(gl.FRAGMENT_SHADER, this.fragSource);
+                const vertSource = this.vertIncludes.join("\r\n\r\n");
+                const fragSource = this.fragIncludes.join("\r\n\r\n");
+
+                const vert = this.compileShader(gl.VERTEX_SHADER, vertSource);
+                const frag = this.compileShader(gl.FRAGMENT_SHADER, fragSource);
 
                 const prog = this.getProgram();
 

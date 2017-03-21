@@ -4,7 +4,7 @@ class TestGame extends Facepunch.WebGame.Game {
     protected onInitialize(): void {
         super.onInitialize();
 
-        const gl = this.getContext();
+        const gl = this.context;
 
         gl.clearColor(0.675, 0.75, 0.5, 1.0);
     }
@@ -12,7 +12,7 @@ class TestGame extends Facepunch.WebGame.Game {
     protected onRenderFrame(dt: number): void {
         super.onRenderFrame(dt);
 
-        const gl = this.getContext();
+        const gl = this.context;
 
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
     }

@@ -18,6 +18,8 @@ namespace Facepunch {
             readonly container: HTMLElement;
             readonly canvas: HTMLCanvasElement;
             readonly context: WebGLRenderingContext;
+
+            private readonly drawListInvalidationHandlers: ((geom: boolean) => void)[] = [];
             
             private heldKeys: boolean[] = new Array(128);
             private heldMouseButtons: boolean[] = new Array(8);
@@ -109,6 +111,16 @@ namespace Facepunch {
             }
 
             populateDrawList(drawList: DrawList, camera: Camera): void {}
+
+            addDrawListInvalidationHandler(action: (geom: boolean) => void): void {
+                this.drawListInvalidationHandlers.push(action);
+            }
+
+            forceDrawListInvalidation(geom: boolean): void {
+                for (let i = 0; i < this.drawListInvalidationHandlers.length; ++i) {
+                    this.drawListInvalidationHandlers[i](geom);
+                }
+            }
 
             animate(dt?: number): void {
                 dt = dt || 0.01666667;

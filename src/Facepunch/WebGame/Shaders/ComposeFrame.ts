@@ -29,16 +29,16 @@ namespace Facepunch {
                         gl_FragDepthEXT = texture2D(uFrameDepth, vScreenPos).r;
                     }`;
 
-                frameColor: UniformSampler;
-                frameDepth: UniformSampler;
+                readonly frameColor: UniformSampler;
+                readonly frameDepth: UniformSampler;
 
                 constructor(context: WebGLRenderingContext) {
                     super(context);
 
                     const gl = context;
 
-                    this.loadShaderSource(gl.VERTEX_SHADER, ComposeFrame.vertSource);
-                    this.loadShaderSource(gl.FRAGMENT_SHADER, ComposeFrame.fragSource);
+                    this.setShaderSource(gl.VERTEX_SHADER, ComposeFrame.vertSource);
+                    this.setShaderSource(gl.FRAGMENT_SHADER, ComposeFrame.fragSource);
 
                     this.addAttribute("aScreenPos", VertexAttribute.uv);
 
