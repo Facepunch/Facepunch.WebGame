@@ -1,13 +1,14 @@
 namespace Facepunch {
     export namespace WebGame {
         export interface IProgramCtor {
-            new (manager: ShaderManager): ShaderProgram;
+            new (context: WebGLRenderingContext): ShaderProgram;
         }
 
         export class ShaderProgram {
-            private static nextSortIndex = 0;
+            private static nextId = 0;
 
-            private sortIndex: number;
+            readonly id = ShaderProgram.nextId++;
+            readonly context: WebGLRenderingContext;
 
             private manager: ShaderManager;
             private program: WebGLProgram;
@@ -26,10 +27,8 @@ namespace Facepunch {
 
             sortOrder = 0;
 
-            constructor(manager: ShaderManager) {
-                this.manager = manager;
-
-                this.sortIndex = ShaderProgram.nextSortIndex++;
+            constructor(context: WebGLRenderingContext) {
+                this.context = context;
             }
 
             reserveNextTextureUnit(): number {
@@ -44,7 +43,7 @@ namespace Facepunch {
 
             dispose(): void {
                 if (this.program !== undefined) {
-                    this.getContext().deleteProgram(this.program);
+                    this.context.deleteProgram(this.program);
                     this.program = undefined;
                 }
             }
@@ -53,7 +52,7 @@ namespace Facepunch {
                 if (other === this) return 0;
                 const orderCompare = this.sortOrder - other.sortOrder;
                 if (orderCompare !== 0) return orderCompare;
-                return this.sortIndex - other.sortIndex;
+                return this.id - other.id;
             }
 
             compareMaterials(a: Material, b: Material): number {
@@ -62,7 +61,7 @@ namespace Facepunch {
 
             getProgram(): WebGLProgram {
                 if (this.program === undefined) {
-                    return this.program = this.getContext().createProgram();
+                    return this.program = this.context.createProgram();
                 }
                 return this.program;
             }
@@ -88,10 +87,6 @@ namespace Facepunch {
                 const uniform = new ctor(this, name);
                 this.uniforms.push(uniform);
                 return uniform;
-            }
-
-            getContext(): WebGLRenderingContext {
-                return this.manager.getContext();
             }
 
             private static includeRegex = /^\s*#include\s+\"([^"]+)\"\s*$/m;
@@ -140,7 +135,7 @@ namespace Facepunch {
             }
 
             private compileShader(type: number, source: string): WebGLShader {
-                const gl = this.getContext();
+                const gl = this.context;
 
                 const shader = gl.createShader(type);
                 gl.shaderSource(shader, source);
@@ -157,7 +152,7 @@ namespace Facepunch {
             }
 
             private findAttribLocation(name: string, attrib: VertexAttribute): void {
-                const gl = this.getContext();
+                const gl = this.context;
                 const loc = gl.getAttribLocation(this.program, name);
 
                 if (loc === -1) throw `Unable to find attribute with name '${name}'.`;
@@ -168,7 +163,7 @@ namespace Facepunch {
             }
 
             private compile(): void {
-                const gl = this.getContext();
+                const gl = this.context;
 
                 const vert = this.compileShader(gl.VERTEX_SHADER, this.vertSource);
                 const frag = this.compileShader(gl.FRAGMENT_SHADER, this.fragSource);
@@ -237,7 +232,7 @@ namespace Facepunch {
             bufferModelMatrix(buf: CommandBuffer, value: Float32Array): void { }
 
             bufferMaterial(buf: CommandBuffer, material: Material): void {
-                const gl = this.getContext();
+                const gl = this.context;
 
                 if (material.properties.noCull) {
                     buf.disable(gl.CULL_FACE);

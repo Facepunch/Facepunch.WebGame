@@ -146,7 +146,7 @@ namespace Facepunch {
 
                 if (this.hasRefraction) {
                     context.bufferRenderTargetEnd(buf);
-                    this.bufferHandle(buf, this.game.getComposeFrameMeshHandle(), context);
+                    this.bufferHandle(buf, this.game.meshes.getComposeFrameMeshHandle(), context);
                 }
 
                 for (let i = 0, iEnd = this.translucent.length; i < iEnd; ++i) {

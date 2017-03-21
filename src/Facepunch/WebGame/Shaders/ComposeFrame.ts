@@ -32,10 +32,10 @@ namespace Facepunch {
                 frameColor: UniformSampler;
                 frameDepth: UniformSampler;
 
-                constructor(manager: ShaderManager) {
-                    super(manager);
+                constructor(context: WebGLRenderingContext) {
+                    super(context);
 
-                    const gl = this.getContext();
+                    const gl = context;
 
                     this.loadShaderSource(gl.VERTEX_SHADER, ComposeFrame.vertSource);
                     this.loadShaderSource(gl.FRAGMENT_SHADER, ComposeFrame.fragSource);

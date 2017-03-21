@@ -31,7 +31,7 @@ namespace Facepunch {
                 this.context = this.canvas.getContext("webgl");
 
                 this.shaders = new ShaderManager(this.context);
-                this.meshes = new MeshManager(this.context);
+                this.meshes = new MeshManager(this);
 
                 this.textureLoader = this.addLoader(new TextureLoader(this.context));
 

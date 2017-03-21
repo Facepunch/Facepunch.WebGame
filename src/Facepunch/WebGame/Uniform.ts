@@ -5,7 +5,7 @@ namespace Facepunch {
         }
 
         export abstract class Uniform {
-            protected gl: WebGLRenderingContext;
+            protected readonly context: WebGLRenderingContext;
 
             private program: ShaderProgram;
             private name: string;
@@ -18,13 +18,13 @@ namespace Facepunch {
             constructor(program: ShaderProgram, name: string) {
                 this.program = program;
                 this.name = name;
-                this.gl = program.getContext();
+                this.context = program.context;
             }
 
             getLocation(): WebGLUniformLocation {
                 if (this.location !== undefined) return this.location;
                 if (!this.program.isCompiled()) return undefined;
-                return this.location = this.gl.getUniformLocation(this.program.getProgram(), this.name);
+                return this.location = this.context.getUniformLocation(this.program.getProgram(), this.name);
             }
 
             reset(): void {
@@ -53,7 +53,7 @@ namespace Facepunch {
             }
 
             set(x: number): void {
-                this.gl.uniform1f(this.getLocation(), x);
+                this.context.uniform1f(this.getLocation(), x);
             }
         }
 
@@ -72,7 +72,7 @@ namespace Facepunch {
             }
 
             set(x: number): void {
-                this.gl.uniform1i(this.getLocation(), x);
+                this.context.uniform1i(this.getLocation(), x);
             }
         }
 
@@ -94,7 +94,7 @@ namespace Facepunch {
             }
 
             set(x: number, y: number): void {
-                this.gl.uniform2f(this.getLocation(), x, y);
+                this.context.uniform2f(this.getLocation(), x, y);
             }
         }
 
@@ -119,7 +119,7 @@ namespace Facepunch {
             }
 
             set(x: number, y: number, z: number): void {
-                this.gl.uniform3f(this.getLocation(), x, y, z);
+                this.context.uniform3f(this.getLocation(), x, y, z);
             }
         }
 
@@ -147,7 +147,7 @@ namespace Facepunch {
             }
 
             set(x: number, y: number, z: number, w: number): void {
-                this.gl.uniform4f(this.getLocation(), x, y, z, w);
+                this.context.uniform4f(this.getLocation(), x, y, z, w);
             }
         }
 
@@ -196,9 +196,9 @@ namespace Facepunch {
                     tex = this.default;
                 }
 
-                this.gl.activeTexture(this.gl.TEXTURE0 + this.texUnit);
-                this.gl.bindTexture(tex.getTarget(), tex.getHandle());
-                this.gl.uniform1i(this.getLocation(), this.texUnit);
+                this.context.activeTexture(this.context.TEXTURE0 + this.texUnit);
+                this.context.bindTexture(tex.getTarget(), tex.getHandle());
+                this.context.uniform1i(this.getLocation(), this.texUnit);
             }
         }
 
@@ -221,7 +221,7 @@ namespace Facepunch {
             }
 
             set(transpose: boolean, values: Float32Array): void {
-                this.gl.uniformMatrix4fv(this.getLocation(), transpose, values);
+                this.context.uniformMatrix4fv(this.getLocation(), transpose, values);
             }
         }
     }

@@ -3,10 +3,11 @@ namespace Facepunch {
         export class ShaderManager {
             private namedPrograms: { [name: string]: ShaderProgram } = {};
             private ctorPrograms: {ctor: IProgramCtor, program: ShaderProgram}[] = [];
-            private gl: WebGLRenderingContext;
 
-            constructor(gl: WebGLRenderingContext) {
-                this.gl = gl;
+            readonly context: WebGLRenderingContext;
+
+            constructor(context: WebGLRenderingContext) {
+                this.context = context;
             }
 
             resetUniformCache(): void {
@@ -15,10 +16,6 @@ namespace Facepunch {
                         this.namedPrograms[name].resetUniformCache();
                     }
                 }
-            }
-
-            getContext(): WebGLRenderingContext {
-                return this.gl;
             }
 
             private getFromName(name: string): ShaderProgram {
@@ -43,7 +40,7 @@ namespace Facepunch {
                     if (ctorProgram.ctor === ctor) return ctorProgram.program;
                 }
 
-                const program = new ctor(this);
+                const program = new ctor(this.context);
                 this.ctorPrograms.push({ctor: ctor, program: program});
                 return program;
             }
