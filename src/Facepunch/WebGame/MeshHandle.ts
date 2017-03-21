@@ -18,21 +18,20 @@ namespace Facepunch {
             readonly indexOffset: number;
             readonly indexCount: number;
 
-            constructor(transform: Matrix4, material: Material, group: MeshGroup,
-                vertexOffset: number, drawMode: DrawMode,
-                indexOffset: number, indexCount: number) {
-                this.transform = transform;
-                this.program = material == null ? undefined : material.program;
-                this.material = material;
+            constructor(group: MeshGroup, vertexOffset: number, drawMode: DrawMode,
+                indexOffset: number, indexCount: number, material: Material,
+                transform?: Matrix4) {
                 this.group = group;
                 this.vertexOffset = vertexOffset;
                 this.indexOffset = indexOffset;
                 this.indexCount = indexCount;
+                this.program = material == null ? undefined : material.program;
+                this.material = material;
+                this.transform = transform;
             }
 
             clone(newTransform: Matrix4): MeshHandle {
-                return new MeshHandle(newTransform, this.material, this.group,
-                    this.vertexOffset, this.drawMode, this.indexOffset, this.indexCount);
+                return new MeshHandle(this.group, this.vertexOffset, this.drawMode, this.indexOffset, this.indexCount, this.material, newTransform);
             }
 
             compareTo(other: MeshHandle): number {

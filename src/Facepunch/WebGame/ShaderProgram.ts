@@ -64,15 +64,12 @@ namespace Facepunch {
             }
 
             bufferAttribPointer(buf: CommandBuffer, attrib: VertexAttribute,
-                size: number,
-                type: number,
-                normalized: boolean,
                 stride: number,
                 offset: number) {
                 const loc = this.attribLocations[attrib.id];
                 if (loc === undefined) return;
 
-                buf.vertexAttribPointer(loc, size, type, normalized, stride, offset);
+                buf.vertexAttribPointer(loc, attrib.size, attrib.type, attrib.normalized, stride, offset);
             }
 
             isCompiled(): boolean {

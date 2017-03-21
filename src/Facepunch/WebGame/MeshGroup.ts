@@ -1,15 +1,5 @@
 namespace Facepunch {
     export namespace WebGame {
-        export class AttributeInfo {
-            readonly attribute: VertexAttribute;
-            readonly offset: number;
-
-            constructor(attribute: VertexAttribute, offset: number) {
-                this.attribute = attribute;
-                this.offset = offset;
-            }
-        }
-
         export interface IMeshElement {
             mode: DrawMode,
             material: number;
@@ -42,7 +32,8 @@ namespace Facepunch {
             readonly id = MeshGroup.nextId++;
 
             private readonly context: WebGLRenderingContext;
-            private readonly attribs: AttributeInfo[];
+            private readonly attribs: VertexAttribute[];
+            private readonly attribOffsets: number[];
 
             private readonly vertexLength: number;
             private readonly indexSize: number;
@@ -58,6 +49,7 @@ namespace Facepunch {
 
             private vertexDataLength = 0;
             private indexDataLength = 0;
+            private subBufferOffset = 0;
 
             constructor(context: WebGLRenderingContext, attribs: VertexAttribute[]) {
                 this.context = context;
@@ -66,11 +58,11 @@ namespace Facepunch {
                 this.vertexLength = 0;
 
                 this.attribs = [];
+                this.attribOffsets = [];
                 for (let i = 0; i < attribs.length; ++i) {
-                    const info = new AttributeInfo(attribs[i], this.vertexLength * MeshGroup.vertexComponentSize);
-                    this.attribs.push(info);
-
-                    this.vertexLength += info.attribute.size;
+                    this.attribs.push(attribs[i]);
+                    this.attribOffsets.push(this.vertexLength * MeshGroup.vertexComponentSize);
+                    this.vertexLength += attribs[i].size;
                 }
 
                 const maxVertsPerSubBuffer = this.indexSize === 4 ? 2147483648 : 65536;
@@ -90,7 +82,7 @@ namespace Facepunch {
                 if (this.attribs.length !== data.attributes.length) return false;
 
                 for (let i = 0; i < this.attribs.length; ++i) {
-                    if (VertexAttribute.compare(this.attribs[i].attribute, data.attributes[i]) !== 0) return false;
+                    if (VertexAttribute.compare(this.attribs[i], data.attributes[i]) !== 0) return false;
                 }
 
                 return this.vertexDataLength + data.vertices.length <= this.maxVertexDataLength
@@ -125,14 +117,98 @@ namespace Facepunch {
                 }
             }
 
-            addMeshData(data: IMeshData): MeshHandle[] {
+            addMeshData(data: IMeshData, getMaterial: (materialIndex: number) => Material, target?: MeshHandle[]): MeshHandle[] {
                 if (!this.canAddMeshData(data)) {
                     throw new Error("Target MeshGroup is incompatible with the given IMeshData.");
                 }
 
                 const gl = this.context;
 
-                // TODO
+                const newVertices = new Float32Array(data.vertices);
+                const newIndices = this.indexSize === 4 ? new Uint32Array(data.indices) : new Uint16Array(data.indices);
+
+                const vertexOffset = this.vertexDataLength;
+                const oldVertexData = this.vertexData;
+                this.vertexData = this.ensureCapacity(this.vertexData,
+                    this.vertexDataLength + newVertices.length,
+                    size => new Float32Array(size));
+
+                const indexOffset = this.indexDataLength;
+                const oldIndexData = this.indexData;
+                this.indexData = this.ensureCapacity(this.indexData,
+                    this.indexDataLength + newIndices.length,
+                    this.indexSize === 4 ? size => new Uint32Array(size) : size => new Uint16Array(size));
+
+                this.vertexData.set(newVertices, vertexOffset);
+                this.vertexDataLength += newVertices.length;
+
+                if (this.vertexDataLength - this.subBufferOffset > this.maxSubBufferLength) {
+                    this.subBufferOffset = vertexOffset;
+                }
+
+                const elementOffset = Math.round(vertexOffset / this.vertexLength) - this.subBufferOffset;
+                if (elementOffset !== 0) {
+                    for (let i = 0, iEnd = newIndices.length; i < iEnd; ++i) {
+                        newIndices[i] += elementOffset;
+                    }
+                }
+
+                this.indexData.set(newIndices, indexOffset);
+                this.indexDataLength += newIndices.length;
+
+                this.updateBuffer(gl.ARRAY_BUFFER, this.vertexBuffer, this.vertexData, newVertices, oldVertexData, vertexOffset);
+                this.updateBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer, this.indexData, newIndices, oldIndexData, indexOffset);
+
+                if (target == null) {
+                    target = [];
+                }
+
+                for (let i = 0; i < data.elements.length; ++i) {
+                    const element = data.elements[i];
+                    target.push(new MeshHandle(this, this.subBufferOffset, element.mode,
+                        element.indexOffset + indexOffset, element.indexCount, getMaterial(element.material)));
+                }
+
+                return target;
+            }
+
+            bufferBindBuffers(buf: CommandBuffer, program: ShaderProgram): void {
+                const gl = this.context;
+
+                buf.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+                buf.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+
+                program.bufferEnableAttributes(buf, this.attribs);
+            }
+
+            bufferAttribPointers(buf: CommandBuffer, program: ShaderProgram, vertexOffset: number): void {
+                const gl = this.context;
+
+                const compSize = MeshGroup.vertexComponentSize;
+                const stride = this.vertexLength * compSize;
+
+                for (let i = 0, iEnd = this.attribs.length; i < iEnd; ++i) {
+                    program.bufferAttribPointer(buf, this.attribs[i], stride, vertexOffset + this.attribOffsets[i]);
+                }
+            }
+
+            bufferRenderElements(buf: CommandBuffer, mode: number, offset: number, count: number): void {
+                const gl = this.context;
+
+                buf.drawElements(mode, count, this.indexSize === 4 ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT,
+                    offset * this.indexSize, this.indexSize);
+            }
+
+            dispose(): void {
+                if (this.vertexBuffer !== undefined) {
+                    this.context.deleteBuffer(this.vertexBuffer);
+                    this.vertexBuffer = undefined;
+                }
+
+                if (this.indexBuffer !== undefined) {
+                    this.context.deleteBuffer(this.indexBuffer);
+                    this.indexBuffer = undefined;
+                }
             }
         }
     }
