@@ -8,7 +8,7 @@ namespace Facepunch {
             parameters?: { [param: number]: Float32Array | Texture };
             parameter?: CommandBufferParameter;
             program?: WebGLProgram;
-            uniform?: WebGLUniformLocation;
+            uniform?: Uniform;
             target?: number;
             unit?: number;
             texture?: WebGLTexture;
@@ -71,6 +71,31 @@ namespace Facepunch {
             constructor(context: WebGLRenderingContext) {
                 this.context = context;
                 this.clearCommands();
+            }
+
+            private getCommandName(action: CommandBufferAction): string {
+                for (let name in this) {
+                    if (this[name] as any === action) return name;
+                }
+
+                return undefined;
+            }
+
+            logCommands(): void {
+                for (let i = 0, iEnd = this.commands.length; i < iEnd; ++i) {
+                    const command = this.commands[i];
+                    let params: string[] = [];
+
+                    for (let name in command) {
+                        if (typeof command[name] !== "function") {
+                            params.push(`${name}: ${command[name]}`);
+                        }
+                    }
+
+                    const paramsJoined = params.join(", ");
+
+                    console.log(`${this.getCommandName(command.action)}(${paramsJoined})`);
+                }
             }
 
             clearCommands(): void {
@@ -166,11 +191,11 @@ namespace Facepunch {
                 const loc = uniform.getLocation();
                 if (loc == null) return;
 
-                const args: ICommandBufferItem = { uniform: loc, parameters: this.parameters, parameter: parameter };
+                const args: ICommandBufferItem = { uniform: uniform, parameters: this.parameters, parameter: parameter };
 
                 if (uniform.isSampler) {
                     const sampler = uniform as UniformSampler;
-                    this.setUniform1I(loc, sampler.getTexUnit());
+                    this.setUniform1I(uniform, sampler.getTexUnit());
 
                     args.unit = sampler.getTexUnit();
                 }
@@ -187,17 +212,17 @@ namespace Facepunch {
                 case CommandBufferParameter.InverseProjectionMatrix:
                 case CommandBufferParameter.ViewMatrix:
                 case CommandBufferParameter.InverseViewMatrix:
-                    gl.uniformMatrix4fv(args.uniform, false, value as Float32Array);
+                    gl.uniformMatrix4fv(args.uniform.getLocation(), false, value as Float32Array);
                     break;
                 case CommandBufferParameter.CameraPos:
                 case CommandBufferParameter.FogColor:
-                    gl.uniform3f(args.uniform, value[0], value[1], value[2]);
+                    gl.uniform3f(args.uniform.getLocation(), value[0], value[1], value[2]);
                     break;
                 case CommandBufferParameter.TimeParams:
                 case CommandBufferParameter.ScreenParams:
                 case CommandBufferParameter.ClipParams:
                 case CommandBufferParameter.FogParams:
-                    gl.uniform4f(args.uniform, value[0], value[1], value[2], value[3]);
+                    gl.uniform4f(args.uniform.getLocation(), value[0], value[1], value[2], value[3]);
                     break;
                 case CommandBufferParameter.RefractColorMap:
                 case CommandBufferParameter.RefractDepthMap:
@@ -209,58 +234,58 @@ namespace Facepunch {
                 }
             }
 
-            setUniform1F(uniform: WebGLUniformLocation, x: number): void {
-                if (uniform == null) return;
+            setUniform1F(uniform: Uniform, x: number): void {
+                if (uniform == null || uniform.getLocation() == null) return;
                 this.push(this.onSetUniform1F, { uniform: uniform, x: x });
             }
 
             private onSetUniform1F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                gl.uniform1f(args.uniform, args.x);
+                gl.uniform1f(args.uniform.getLocation(), args.x);
             }
 
-            setUniform1I(uniform: WebGLUniformLocation, x: number): void {
-                if (uniform == null) return;
+            setUniform1I(uniform: Uniform, x: number): void {
+                if (uniform == null || uniform.getLocation() == null) return;
                 this.push(this.onSetUniform1I, { uniform: uniform, x: x });
             }
 
             private onSetUniform1I(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                gl.uniform1i(args.uniform, args.x);
+                gl.uniform1i(args.uniform.getLocation(), args.x);
             }
 
-            setUniform2F(uniform: WebGLUniformLocation, x: number, y: number): void {
-                if (uniform == null) return;
+            setUniform2F(uniform: Uniform, x: number, y: number): void {
+                if (uniform == null || uniform.getLocation() == null) return;
                 this.push(this.onSetUniform2F, { uniform: uniform, x: x, y: y });
             }
 
             private onSetUniform2F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                gl.uniform2f(args.uniform, args.x, args.y);
+                gl.uniform2f(args.uniform.getLocation(), args.x, args.y);
             }
 
-            setUniform3F(uniform: WebGLUniformLocation, x: number, y: number, z: number): void {
-                if (uniform == null) return;
+            setUniform3F(uniform: Uniform, x: number, y: number, z: number): void {
+                if (uniform == null || uniform.getLocation() == null) return;
                 this.push(this.onSetUniform3F, { uniform: uniform, x: x, y: y, z: z });
             }
 
             private onSetUniform3F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                gl.uniform3f(args.uniform, args.x, args.y, args.z);
+                gl.uniform3f(args.uniform.getLocation(), args.x, args.y, args.z);
             }
 
-            setUniform4F(uniform: WebGLUniformLocation, x: number, y: number, z: number, w: number): void {
-                if (uniform == null) return;
+            setUniform4F(uniform: Uniform, x: number, y: number, z: number, w: number): void {
+                if (uniform == null || uniform.getLocation() == null) return;
                 this.push(this.onSetUniform4F, { uniform: uniform, x: x, y: y, z: z, w: w });
             }
 
             private onSetUniform4F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                gl.uniform4f(args.uniform, args.x, args.y, args.z, args.w);
+                gl.uniform4f(args.uniform.getLocation(), args.x, args.y, args.z, args.w);
             }
 
-            setUniformMatrix4(uniform: WebGLUniformLocation, transpose: boolean, values: Float32Array): void {
-                if (uniform == null) return;
+            setUniformMatrix4(uniform: Uniform, transpose: boolean, values: Float32Array): void {
+                if (uniform == null || uniform.getLocation() == null) return;
                 this.push(this.onSetUniformMatrix4, { uniform: uniform, transpose: transpose, values: values });
             }
 
             private onSetUniformMatrix4(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                gl.uniformMatrix4fv(args.uniform, args.transpose, args.values);
+                gl.uniformMatrix4fv(args.uniform.getLocation(), args.transpose, args.values);
             }
 
             bindTexture(unit: number, value: Texture): void {

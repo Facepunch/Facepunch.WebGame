@@ -164,7 +164,7 @@ namespace Facepunch {
                     const material = typeof element.material === "number"
                         ? getMaterial != null ? getMaterial(element.material) : null
                         : element.material;
-                    target.push(new MeshHandle(this, this.subBufferOffset, element.mode,
+                    target.push(new MeshHandle(this, this.subBufferOffset, WebGl.decodeConst(element.mode),
                         element.indexOffset + indexOffset, element.indexCount, material));
                 }
             }

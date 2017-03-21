@@ -5,7 +5,7 @@
         "noEmitOnError": false,
         "removeComments": false,
         "declaration": false,
-        "sourceMap": true,
+        "sourceMap": false,
         "outFile": "../build/testgame.js",
         "target": "es5"
     },

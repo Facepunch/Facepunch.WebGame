@@ -6,7 +6,6 @@ namespace Facepunch {
             readonly fog: Fog;
             
             private drawList: DrawList;
-            private geometryInvalid = true;
             private commandBuffer: CommandBuffer;
             private commandBufferInvalid = true;
 
@@ -19,7 +18,8 @@ namespace Facepunch {
                 this.drawList = new DrawList(this);
                 this.commandBuffer = new CommandBuffer(game.context);
 
-                this.game.addDrawListInvalidationHandler((geom: boolean) => this.drawList.invalidate(geom));
+                this.game.addDrawListInvalidationHandler((geom: boolean) => geom
+                    ? this.drawList.invalidate() : this.invalidate());
             }
 
             getOpaqueColorTexture(): RenderTexture {
@@ -30,26 +30,16 @@ namespace Facepunch {
                 return this.opaqueFrameBuffer == null ? null : this.opaqueFrameBuffer.getDepthTexture();
             }
 
-            invalidate(drawList: boolean = true): void {
+            invalidate(): void {
                 this.commandBufferInvalid = true;
-                if (drawList) this.drawList.invalidate(true);
             }
 
             render(): void {
-                if (this.geometryInvalid) {
-                    this.geometryInvalid = false;
-                    this.commandBufferInvalid = true;
+                this.drawList.clear();
+                this.game.populateDrawList(this.drawList, this.camera);
 
-                    this.drawList.clear();
-                    this.game.populateDrawList(this.drawList, this.camera);
-                }
-
-                if (this.commandBufferInvalid) {
-                    this.commandBufferInvalid = false;
-
-                    this.commandBuffer.clearCommands();
-                    this.drawList.appendToBuffer(this.commandBuffer, this);
-                }
+                this.commandBuffer.clearCommands();
+                this.drawList.appendToBuffer(this.commandBuffer, this);
 
                 this.commandBuffer.run(this);
             }

@@ -5,8 +5,9 @@
         <script src="/facepunch.webgame.js"></script>
         <script src="/testgame.js"></script>
         <script>
+            var game;
             window.onload = function() {
-                var game = new TestGame(document.getElementById("canvas-container"));
+                game = new TestGame(document.getElementById("canvas-container"));
                 game.animate();
             }
         </script>

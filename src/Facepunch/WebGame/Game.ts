@@ -129,6 +129,10 @@ namespace Facepunch {
             animate(dt?: number): void {
                 dt = dt || 0.01666667;
 
+                for (let i = 0, iEnd = this.loaders.length; i < iEnd; ++i) {
+                    this.loaders[i].update(4);
+                }
+
                 this.onUpdateFrame(dt);
                 this.onRenderFrame(dt);
 

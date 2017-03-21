@@ -21,7 +21,8 @@ namespace Facepunch {
             private static nextId = 0;
 
             readonly id = Material.nextId++;
-            readonly properties: any = {};
+
+            properties: any;
 
             program: ShaderProgram;
             enabled = true;
@@ -30,6 +31,12 @@ namespace Facepunch {
             constructor(program: ShaderProgram);
             constructor(program?: ShaderProgram) {
                 this.program = program;
+
+                if (program != null) {
+                    this.properties = program.createMaterialProperties();
+                } else {
+                    this.properties = {};
+                }
             }
         }
 
@@ -65,6 +72,7 @@ namespace Facepunch {
 
                 Http.getJson<IMaterialInfo>(this.url, info => {
                     this.program = this.game.shaders.get(info.shader);
+                    this.properties = this.program.createMaterialProperties();
 
                     for (let i = 0; i < info.properties.length; ++i) {
                         this.addPropertyFromInfo(info.properties[i]);

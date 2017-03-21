@@ -19,6 +19,8 @@ namespace Facepunch {
                 this.program = program;
                 this.name = name;
                 this.context = program.context;
+
+                this.toString = () => name;
             }
 
             getLocation(): WebGLUniformLocation {
@@ -49,7 +51,7 @@ namespace Facepunch {
             bufferValue(buf: CommandBuffer, x: number): void {
                 if (this.x === x) return;
                 this.x = x;
-                buf.setUniform1F(this.getLocation(), x);
+                buf.setUniform1F(this, x);
             }
 
             set(x: number): void {
@@ -68,7 +70,7 @@ namespace Facepunch {
             bufferValue(buf: CommandBuffer, x: number): void {
                 if (this.x === x) return;
                 this.x = x;
-                buf.setUniform1I(this.getLocation(), x);
+                buf.setUniform1I(this, x);
             }
 
             set(x: number): void {
@@ -90,7 +92,7 @@ namespace Facepunch {
                 if (this.x === x && this.y === y) return;
                 this.x = x;
                 this.y = y;
-                buf.setUniform2F(this.getLocation(), x, y);
+                buf.setUniform2F(this, x, y);
             }
 
             set(x: number, y: number): void {
@@ -115,7 +117,7 @@ namespace Facepunch {
                 this.x = x;
                 this.y = y;
                 this.z = z;
-                buf.setUniform3F(this.getLocation(), x, y, z);
+                buf.setUniform3F(this, x, y, z);
             }
 
             set(x: number, y: number, z: number): void {
@@ -143,7 +145,7 @@ namespace Facepunch {
                 this.y = y;
                 this.z = z;
                 this.w = w;
-                buf.setUniform4F(this.getLocation(), x, y, z, w);
+                buf.setUniform4F(this, x, y, z, w);
             }
 
             set(x: number, y: number, z: number, w: number): void {
@@ -187,7 +189,7 @@ namespace Facepunch {
 
                 if (this.value !== this.texUnit) {
                     this.value = this.texUnit;
-                    buf.setUniform1I(this.getLocation(), this.texUnit);
+                    buf.setUniform1I(this, this.texUnit);
                 }
             }
 
@@ -217,7 +219,7 @@ namespace Facepunch {
                 this.transpose = transpose;
                 this.values = values;
 
-                buf.setUniformMatrix4(this.getLocation(), transpose, values);
+                buf.setUniformMatrix4(this, transpose, values);
             }
 
             set(transpose: boolean, values: Float32Array): void {

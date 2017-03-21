@@ -4,7 +4,7 @@ namespace Facepunch {
             new (context: WebGLRenderingContext): ShaderProgram;
         }
 
-        export class ShaderProgram {
+        export abstract class ShaderProgram {
             private static nextId = 0;
 
             readonly id = ShaderProgram.nextId++;
@@ -31,6 +31,10 @@ namespace Facepunch {
 
             constructor(context: WebGLRenderingContext) {
                 this.context = context;
+            }
+
+            createMaterialProperties(): any {
+                return {};
             }
 
             reserveNextTextureUnit(): number {
@@ -133,14 +137,23 @@ namespace Facepunch {
                 case WebGLRenderingContext.VERTEX_SHADER:
                     this.vertIncludes.push(source);
                     break;
-                case WebGLRenderingContext.VERTEX_SHADER:
-                    this.vertIncludes.push(source);
+                case WebGLRenderingContext.FRAGMENT_SHADER:
+                    this.fragIncludes.push(source);
                     break;
                 }
             }
 
             protected setShaderSource(type: number, source: string): void {
                 this.includeShaderSource(type, source);
+
+                switch(type) {
+                case WebGLRenderingContext.VERTEX_SHADER:
+                    this.fullVertSource = true;
+                    break;
+                case WebGLRenderingContext.FRAGMENT_SHADER:
+                    this.fullFragSource = true;
+                    break;
+                }
 
                 if (this.hasAllSources()) {
                     this.compile();
@@ -247,10 +260,34 @@ namespace Facepunch {
 
             bufferModelMatrix(buf: CommandBuffer, value: Float32Array): void { }
 
+            bufferMaterial(buf: CommandBuffer, material: Material): void { }
+        }
+
+        export class BaseMaterialProps {
+            noCull = false;
+        }
+
+        export abstract class BaseShaderProgram<TMaterialProps extends BaseMaterialProps> extends ShaderProgram {
+            private readonly materialPropsCtor: {new():TMaterialProps};
+            
+            constructor(context: WebGLRenderingContext, ctor: {new():TMaterialProps}) {
+                super(context);
+
+                this.materialPropsCtor = ctor;
+            }
+            
+            createMaterialProperties(): any {
+                return new this.materialPropsCtor();
+            }
+            
             bufferMaterial(buf: CommandBuffer, material: Material): void {
+                this.bufferMaterialProps(buf, material.properties as TMaterialProps);
+            }
+            
+            bufferMaterialProps(buf: CommandBuffer, props: TMaterialProps): void {
                 const gl = this.context;
 
-                if (material.properties.noCull) {
+                if (props.noCull) {
                     buf.disable(gl.CULL_FACE);
                 } else {
                     buf.enable(gl.CULL_FACE);

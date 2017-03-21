@@ -5,7 +5,7 @@
         "noEmitOnError": false,
         "removeComments": false,
         "declaration": true,
-        "sourceMap": true,
+        "sourceMap": false,
         "outFile": "../build/facepunch.webgame.js",
         "target": "es5"
     },

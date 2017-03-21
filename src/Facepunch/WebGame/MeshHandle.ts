@@ -22,6 +22,7 @@ namespace Facepunch {
                 transform?: Matrix4) {
                 this.group = group;
                 this.vertexOffset = vertexOffset;
+                this.drawMode = drawMode;
                 this.indexOffset = indexOffset;
                 this.indexCount = indexCount;
                 this.material = material;

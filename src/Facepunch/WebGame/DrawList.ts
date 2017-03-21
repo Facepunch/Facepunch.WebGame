@@ -19,6 +19,10 @@ namespace Facepunch {
                 this.game = context.game;
             }
 
+            isInvalid(): boolean {
+                return this.invalid;
+            }
+
             clear(): void {
                 for (let i = 0, iEnd = this.items.length; i < iEnd; ++i) {
                     this.items[i].onRemoveFromDrawList(this);
@@ -37,18 +41,18 @@ namespace Facepunch {
                 this.items.push(item);
                 this.updateItem(item);
                 item.onAddToDrawList(this);
+                this.invalid = true;
             }
 
             private isBuildingList: boolean = false;
 
-            invalidate(geom: boolean): void {
+            invalidate(): void {
                 if (this.isBuildingList) return;
-                if (geom) this.invalid = true;
-                this.context.invalidate();
+                this.invalid = true;
             }
 
             updateItem(item: IDrawListItem): void {
-                this.invalidate(true);
+                this.invalidate();
             }
 
             private bufferHandle(buf: CommandBuffer, handle: MeshHandle, context: RenderContext): void {

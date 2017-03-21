@@ -1,7 +1,15 @@
 namespace Facepunch {
     export namespace WebGame {
         export namespace Shaders {
-            export abstract class ModelBase extends ShaderProgram {
+            export class ModelBaseMaterialProps extends BaseMaterialProps {
+                baseTexture: Texture = null;
+                noFog = false;
+                translucent = false;
+            }
+
+            export abstract class ModelBase<TMaterialProps extends ModelBaseMaterialProps>
+                extends BaseShaderProgram<TMaterialProps> {
+
                 static readonly vertSource = `
                     attribute vec3 aPosition;
                     attribute vec2 aTextureCoord;
@@ -60,8 +68,8 @@ namespace Facepunch {
                 readonly fogColor: Uniform3F;
                 readonly noFog: Uniform1F;
 
-                constructor(context: WebGLRenderingContext) {
-                    super(context);
+                constructor(context: WebGLRenderingContext, ctor: {new(): TMaterialProps}) {
+                    super(context, ctor);
 
                     const gl = context;
 
@@ -71,6 +79,13 @@ namespace Facepunch {
                     this.projectionMatrix = this.addUniform("uProjection", UniformMatrix4);
                     this.viewMatrix = this.addUniform("uView", UniformMatrix4);
                     this.modelMatrix = this.addUniform("uModel", UniformMatrix4);
+
+                    this.baseTexture = this.addUniform("uBaseTexture", UniformSampler);
+
+                    this.time = this.addUniform("uTime", Uniform4F);
+                    this.fogParams = this.addUniform("uFogParams", Uniform4F);
+                    this.fogColor = this.addUniform("uFogColor", Uniform3F);
+                    this.noFog = this.addUniform("uNoFog", Uniform1F);
                 }
 
                 bufferSetup(buf: CommandBuffer, context: RenderContext): void {
@@ -90,15 +105,15 @@ namespace Facepunch {
                     this.modelMatrix.bufferValue(buf, false, value);
                 }
 
-                bufferMaterial(buf: CommandBuffer, material: Material): void {
-                    super.bufferMaterial(buf, material);
+                bufferMaterialProps(buf: CommandBuffer, props: TMaterialProps): void {
+                    super.bufferMaterialProps(buf, props);
 
-                    this.baseTexture.bufferValue(buf, material.properties.baseTexture);
-                    this.noFog.bufferValue(buf, material.properties.noFog ? 1 : 0);
+                    this.baseTexture.bufferValue(buf, props.baseTexture);
+                    this.noFog.bufferValue(buf, props.noFog ? 1 : 0);
 
                     const gl = this.context;
 
-                    if (material.properties.translucent) {
+                    if (props.translucent) {
                         buf.depthMask(false);
                         buf.enable(gl.BLEND);
                         buf.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

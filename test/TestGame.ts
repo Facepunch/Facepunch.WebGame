@@ -22,6 +22,12 @@ class TestGame extends WebGame.Game {
         gl.clearColor(0.675, 0.75, 0.5, 1.0);
     }
 
+    protected onResize(): void {
+        super.onResize();
+
+        this.mainCamera.setAspect(this.getWidth() / this.getHeight());
+    }
+
     protected onRenderFrame(dt: number): void {
         super.onRenderFrame(dt);
 
