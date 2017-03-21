@@ -1,5 +1,9 @@
 namespace Facepunch {
     export namespace WebGame {
+        export interface IProgramCtor {
+            new (manager: ShaderManager): ShaderProgram;
+        }
+
         export class ShaderProgram {
             private static nextSortIndex = 0;
 
@@ -80,7 +84,7 @@ namespace Facepunch {
                 this.attribNames[name] = attrib;
             }
 
-            protected addUniform<TUniform extends Uniform>(ctor: IUniformCtor<TUniform>, name: string): TUniform {
+            protected addUniform<TUniform extends Uniform>(name: string, ctor: IUniformCtor<TUniform>): TUniform {
                 const uniform = new ctor(this, name);
                 this.uniforms.push(uniform);
                 return uniform;
@@ -110,15 +114,15 @@ namespace Facepunch {
                     });
             }
 
-            protected loadShaderSource(type: number, url: string): void {
-                this.getShaderSource(url, source => this.onLoadShaderSource(type, source));
+            protected loadShaderSourceFromUrl(type: number, url: string): void {
+                this.getShaderSource(url, source => this.loadShaderSource(type, source));
             }
 
             private hasAllSources(): boolean {
                 return this.vertSource !== undefined && this.fragSource !== undefined;
             }
 
-            private onLoadShaderSource(type: number, source: string): void {
+            protected loadShaderSource(type: number, source: string): void {
                 switch (type) {
                 case WebGLRenderingContext.VERTEX_SHADER:
                     this.vertSource = source;

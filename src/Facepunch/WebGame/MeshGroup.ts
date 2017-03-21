@@ -2,7 +2,7 @@ namespace Facepunch {
     export namespace WebGame {
         export interface IMeshElement {
             mode: DrawMode,
-            material: number;
+            material: number | Material;
             indexOffset: number;
             indexCount: number;
             vertexOffset?: number;
@@ -158,11 +158,14 @@ namespace Facepunch {
 
                 this.updateBuffer(gl.ARRAY_BUFFER, this.vertexBuffer, this.vertexData, newVertices, oldVertexData, vertexOffset);
                 this.updateBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer, this.indexData, newIndices, oldIndexData, indexOffset);
-                
+
                 for (let i = 0; i < data.elements.length; ++i) {
                     const element = data.elements[i];
+                    const material = typeof element.material === "number"
+                        ? getMaterial != null ? getMaterial(element.material) : null
+                        : element.material;
                     target.push(new MeshHandle(this, this.subBufferOffset, element.mode,
-                        element.indexOffset + indexOffset, element.indexCount, getMaterial(element.material)));
+                        element.indexOffset + indexOffset, element.indexCount, material));
                 }
             }
 

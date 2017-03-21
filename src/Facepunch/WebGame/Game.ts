@@ -6,6 +6,7 @@ namespace Facepunch {
             canLockPointer = false;
 
             readonly shaders: ShaderManager;
+            readonly meshes: MeshManager;
 
             readonly textureLoader: TextureLoader;
 
@@ -30,6 +31,7 @@ namespace Facepunch {
                 this.context = this.canvas.getContext("webgl");
 
                 this.shaders = new ShaderManager(this.context);
+                this.meshes = new MeshManager(this.context);
 
                 this.textureLoader = this.addLoader(new TextureLoader(this.context));
 

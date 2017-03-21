@@ -30,8 +30,9 @@ namespace Facepunch {
                 this.transform = transform;
             }
 
-            clone(newTransform: Matrix4): MeshHandle {
-                return new MeshHandle(this.group, this.vertexOffset, this.drawMode, this.indexOffset, this.indexCount, this.material, newTransform);
+            clone(newTransform: Matrix4, newMaterial?: Material): MeshHandle {
+                return new MeshHandle(this.group, this.vertexOffset, this.drawMode,
+                    this.indexOffset, this.indexCount, newMaterial || this.material, newTransform);
             }
 
             compareTo(other: MeshHandle): number {
