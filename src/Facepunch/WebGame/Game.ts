@@ -10,6 +10,7 @@ namespace Facepunch {
 
             readonly materialLoader: MaterialLoader;
             readonly textureLoader: TextureLoader;
+            readonly modelLoader: ModelLoader;
 
             private loaders: ILoader[] = [];
 
@@ -38,6 +39,7 @@ namespace Facepunch {
 
                 this.materialLoader = this.addLoader(new MaterialLoader(this));
                 this.textureLoader = this.addLoader(new TextureLoader(this.context));
+                this.modelLoader = this.addLoader(new ModelLoader(this));
 
                 window.addEventListener("mousedown", evnt => {
                     this.heldMouseButtons[evnt.which] = true;

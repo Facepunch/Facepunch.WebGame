@@ -1,14 +1,27 @@
 namespace Facepunch {
     export namespace WebGame {
-        export class DrawListItem {
+        export interface IDrawListItem {
+            getIsVisible(): boolean;
+            getIsInDrawList(drawList: DrawList): boolean;
+            onAddToDrawList(list: DrawList): void;
+            onRemoveFromDrawList(list: DrawList): void;
+            getMeshHandles(): MeshHandle[];
+        }
+
+        export class DrawListItem implements IDrawListItem {
             isStatic = false;
             entity: Entity = null;
             
-            private meshHandles: MeshHandle[] = [];
+            private meshHandles: MeshHandle[];
 
             private readonly drawLists: DrawList[] = [];
 
-            addMeshHandles(handles: MeshHandle[]) {
+            clearMeshHandles(): void {
+                this.meshHandles = null;
+                this.invalidateDrawLists();
+            }
+
+            addMeshHandles(handles: MeshHandle[]): void {
                 if (this.meshHandles == null) this.meshHandles = [];
 
                 for (let i = 0, iEnd = handles.length; i < iEnd; ++i) {
@@ -18,7 +31,7 @@ namespace Facepunch {
                 this.invalidateDrawLists();
             }
 
-            invalidateDrawLists(): void {
+            private invalidateDrawLists(): void {
                 if (!this.getIsVisible()) return;
                 for (let i = 0, iEnd = this.drawLists.length; i < iEnd; ++i) {
                     this.drawLists[i].updateItem(this);
@@ -39,12 +52,12 @@ namespace Facepunch {
                 return false;
             }
 
-            onAddToDrawList(list: DrawList) {
+            onAddToDrawList(list: DrawList): void {
                 if (this.getIsInDrawList(list)) throw "Item added to a draw list twice.";
                 this.drawLists.push(list);
             }
 
-            onRemoveFromDrawList(list: DrawList) {
+            onRemoveFromDrawList(list: DrawList): void {
                 for (let i = 0, iEnd = this.drawLists.length; i < iEnd; ++i) {
                     if (this.drawLists[i] === list) {
                         this.drawLists.splice(i, 1);
@@ -55,13 +68,7 @@ namespace Facepunch {
                 throw "Item removed from a draw list it isn't a member of.";
             }
 
-            protected onRequestMeshHandles(): void {}
-
             getMeshHandles(): MeshHandle[] {
-                if (this.meshHandles == null) {
-                    this.onRequestMeshHandles();
-                }
-
                 return this.meshHandles;
             }
         }
