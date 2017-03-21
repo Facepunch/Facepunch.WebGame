@@ -10,14 +10,14 @@ namespace Facepunch {
         }
 
         export interface IMeshData {
-            attributes: IVertexAttribute[];
+            attributes: VertexAttribute[];
             elements: IMeshElement[];
             vertices: number[];
             indices: number[];
         }
 
         export interface ICompressedMeshData {
-            attributes: IVertexAttribute[];
+            attributes: (VertexAttribute | string)[];
             elements: IMeshElement[];
             vertices: number[] | string;
             indices: number[] | string;

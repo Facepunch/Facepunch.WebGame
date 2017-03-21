@@ -15,15 +15,19 @@ namespace Facepunch {
                     target = [];
                 }
 
-                let uncompressed: IMeshData = data as IMeshData;
-                if (typeof data.indices === "string" || typeof data.vertices === "string") {
-                    uncompressed = {
-                        attributes: data.attributes,
-                        elements: data.elements,
-                        vertices: Utils.decompress(data.vertices),
-                        indices: Utils.decompress(data.indices)
-                    };
+                const attribs: VertexAttribute[] = [];
+
+                for (let i = 0, iEnd = data.attributes.length; i < iEnd; ++i) {
+                    const attrib = data.attributes[i];
+                    attribs.push(typeof attrib === "string" ? VertexAttribute[attrib] : attrib);
                 }
+
+                let uncompressed: IMeshData = {
+                    attributes: attribs,
+                    elements: data.elements,
+                    vertices: Utils.decompress(data.vertices),
+                    indices: Utils.decompress(data.indices)
+                };
 
                 for (let i = 0, iEnd = this.groups.length; i < iEnd; ++i) {
                     const group = this.groups[i];
@@ -31,13 +35,6 @@ namespace Facepunch {
                         group.addMeshData(uncompressed, getMaterial, target);
                         return target;
                     }
-                }
-
-                const attribs: VertexAttribute[] = [];
-
-                for (let i = 0, iEnd = data.attributes.length; i < iEnd; ++i) {
-                    const attrib = data.attributes[i];
-                    attribs.push(new VertexAttribute(attrib.size, attrib.type, attrib.normalized));
                 }
 
                 const newGroup = new MeshGroup(this.context, attribs);
