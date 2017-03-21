@@ -3,9 +3,9 @@
 namespace Facepunch {
     export namespace WebGame {
         export class Entity {
-            private static nextSortIndex = 0;
+            private static nextId = 0;
 
-            private sortIndex: number;
+            readonly id = Entity.nextId++;
 
             private position = new Vector3();
             private rotation = new Quaternion().setIdentity();
@@ -17,13 +17,9 @@ namespace Facepunch {
             private inverseMatrix = new Matrix4();
             private inverseMatrixInvalid = true;
 
-            constructor() {
-                this.sortIndex = Entity.nextSortIndex++;
-            }
-
             compareTo(other: Entity): number {
                 if (other == null) return 1;
-                return this.sortIndex - other.sortIndex;
+                return this.id - other.id;
             }
 
             private invalidateMatrices(): void {
