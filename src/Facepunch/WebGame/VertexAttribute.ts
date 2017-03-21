@@ -28,20 +28,16 @@ namespace Facepunch {
                 return (a.normalized ? 1 : 0) - (b.normalized ? 1 : 0);
             }
 
-            create(attrib: IVertexAttribute): VertexAttribute {
-                return new VertexAttribute(attrib.size, WebGl.decodeConst(attrib.type), attrib.normalized === true);
-            }
-
             readonly id = VertexAttribute.nextId++;
 
             readonly size: number;
             readonly type: AttributeType;
             readonly normalized: boolean;
 
-            private constructor(size: number, type: AttributeType, normalized: boolean) {
+            constructor(size: number, type: AttributeType | string, normalized?: boolean) {
                 this.size = size;
-                this.type = type;
-                this.normalized = normalized;
+                this.type = WebGl.decodeConst(type);
+                this.normalized = normalized === true;
             }
         }
     }

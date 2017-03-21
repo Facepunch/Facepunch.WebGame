@@ -117,7 +117,7 @@ namespace Facepunch {
                 }
             }
 
-            addMeshData(data: IMeshData, getMaterial: (materialIndex: number) => Material, target?: MeshHandle[]): MeshHandle[] {
+            addMeshData(data: IMeshData, getMaterial: (materialIndex: number) => Material, target: MeshHandle[]): void {
                 if (!this.canAddMeshData(data)) {
                     throw new Error("Target MeshGroup is incompatible with the given IMeshData.");
                 }
@@ -158,18 +158,12 @@ namespace Facepunch {
 
                 this.updateBuffer(gl.ARRAY_BUFFER, this.vertexBuffer, this.vertexData, newVertices, oldVertexData, vertexOffset);
                 this.updateBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer, this.indexData, newIndices, oldIndexData, indexOffset);
-
-                if (target == null) {
-                    target = [];
-                }
-
+                
                 for (let i = 0; i < data.elements.length; ++i) {
                     const element = data.elements[i];
                     target.push(new MeshHandle(this, this.subBufferOffset, element.mode,
                         element.indexOffset + indexOffset, element.indexCount, getMaterial(element.material)));
                 }
-
-                return target;
             }
 
             bufferBindBuffers(buf: CommandBuffer, program: ShaderProgram): void {
