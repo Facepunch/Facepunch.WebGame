@@ -10,7 +10,6 @@ namespace Facepunch {
             static readonly undefinedHandle = new MeshHandle(undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
             readonly transform: Matrix4;
-            readonly program: ShaderProgram;
             readonly material: Material;
             readonly group: MeshGroup;
             readonly vertexOffset: number;
@@ -25,7 +24,6 @@ namespace Facepunch {
                 this.vertexOffset = vertexOffset;
                 this.indexOffset = indexOffset;
                 this.indexCount = indexCount;
-                this.program = material == null ? undefined : material.program;
                 this.material = material;
                 this.transform = transform;
             }
@@ -36,7 +34,10 @@ namespace Facepunch {
             }
 
             compareTo(other: MeshHandle): number {
-                const progComp = this.program.compareTo(other.program);
+                const thisProg = this.material.program;
+                const otherProg = other.material.program;
+
+                const progComp = thisProg.compareTo(otherProg);
                 if (progComp !== 0) return progComp;
 
                 if (this.transform !== other.transform) {
@@ -45,7 +46,7 @@ namespace Facepunch {
                     return this.transform.id - other.transform.id;
                 }
 
-                const matComp = this.program.compareMaterials(this.material, other.material);
+                const matComp = thisProg.compareMaterials(this.material, other.material);
                 if (matComp !== 0) return matComp;
 
                 const groupComp = this.group.compareTo(other.group);

@@ -21,6 +21,7 @@ namespace Facepunch {
             static readonly rgba = new VertexAttribute(4, AttributeType.Float, false);
 
             static compare(a: IVertexAttribute, b: IVertexAttribute): number {
+                if (a === b) return 0;
                 const sizeComp = a.size - b.size;
                 if (sizeComp !== 0) return sizeComp;
                 const typeComp = WebGl.decodeConst(a.type) - WebGl.decodeConst(b.type);

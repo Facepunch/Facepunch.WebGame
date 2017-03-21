@@ -3,6 +3,7 @@ namespace Facepunch {
         export class RenderContext implements ICommandBufferParameterProvider {
             readonly game: Game;
             readonly camera: Camera;
+            readonly fog: Fog;
             
             private drawList: DrawList;
             private geometryInvalid = true;
@@ -14,6 +15,7 @@ namespace Facepunch {
             constructor(game: Game, camera: Camera) {
                 this.game = game;
                 this.camera = camera;
+                this.fog = new Fog(this);
                 this.drawList = new DrawList(this);
                 this.commandBuffer = new CommandBuffer(game.context);
 
@@ -55,6 +57,7 @@ namespace Facepunch {
             populateCommandBufferParameters(buf: CommandBuffer): void {
                 this.game.populateCommandBufferParameters(buf);
                 this.camera.populateCommandBufferParameters(buf);
+                this.fog.populateCommandBufferParameters(buf);
 
                 buf.setParameter(CommandBufferParameter.RefractColorMap, this.getOpaqueColorTexture());
                 buf.setParameter(CommandBufferParameter.RefractDepthMap, this.getOpaqueDepthTexture());

@@ -1,0 +1,39 @@
+{
+    "target": "TEXTURE_2D",
+    "width": 1024, "height": 1024,
+    "params": [
+        {
+            "type": "INT",
+            "name": "TEXTURE_WRAP_S",
+            "value": "REPEAT"
+        },
+        {
+            "type": "INT",
+            "name": "TEXTURE_WRAP_T",
+            "value": "REPEAT"
+        },
+        {
+            "type": "INT",
+            "name": "TEXTURE_MIN_FILTER",
+            "value": "LINEAR_MIPMAP_LINEAR"
+        },
+        {
+            "type": "INT",
+            "name": "TEXTURE_MAG_FILTER",
+            "value": "LINEAR"
+        }
+    ],
+    "elements": [
+        { "level": 10, "color": { "r": 82, "g": 93, "b": 87 } },
+        { "level": 9, "url": "military_case_02_color.mip9.png" },
+        { "level": 8, "url": "military_case_02_color.mip8.png" },
+        { "level": 7, "url": "military_case_02_color.mip7.png" },
+        { "level": 6, "url": "military_case_02_color.mip6.png" },
+        { "level": 5, "url": "military_case_02_color.mip5.png" },
+        { "level": 4, "url": "military_case_02_color.mip4.png" },
+        { "level": 3, "url": "military_case_02_color.mip3.png" },
+        { "level": 2, "url": "military_case_02_color.mip2.png" },
+        { "level": 1, "url": "military_case_02_color.mip1.png" },
+        { "level": 0, "url": "military_case_02_color.png" }
+    ]
+}

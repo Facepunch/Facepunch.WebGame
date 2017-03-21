@@ -175,7 +175,7 @@ namespace Facepunch {
             elements: ITextureElement[]
         }
 
-        export class TextureLoadable extends Texture implements ILoadable<TextureLoadable> {
+        export class TextureLoadable extends Texture implements ILoadable {
             private readonly gl: WebGLRenderingContext;
             private readonly url: string;            
 

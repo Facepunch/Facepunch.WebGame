@@ -45,6 +45,8 @@ namespace Facepunch {
             ScreenParams,
             ClipParams,
             TimeParams,
+            FogParams,
+            FogColor,
             RefractColorMap,
             RefractDepthMap
         }
@@ -188,11 +190,13 @@ namespace Facepunch {
                     gl.uniformMatrix4fv(args.uniform, false, value as Float32Array);
                     break;
                 case CommandBufferParameter.CameraPos:
+                case CommandBufferParameter.FogColor:
                     gl.uniform3f(args.uniform, value[0], value[1], value[2]);
                     break;
                 case CommandBufferParameter.TimeParams:
                 case CommandBufferParameter.ScreenParams:
                 case CommandBufferParameter.ClipParams:
+                case CommandBufferParameter.FogParams:
                     gl.uniform4f(args.uniform, value[0], value[1], value[2], value[3]);
                     break;
                 case CommandBufferParameter.RefractColorMap:

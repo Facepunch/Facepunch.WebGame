@@ -1,8 +1,18 @@
 /// <reference path="../build/facepunch.webgame.d.ts"/>
 
-class TestGame extends Facepunch.WebGame.Game {
+import WebGame = Facepunch.WebGame;
+
+class TestGame extends WebGame.Game {
+    private mainCamera: WebGame.PerspectiveCamera;
+    private mainRenderContext: WebGame.RenderContext;
+
+    private testObject: WebGame.DrawListItem;
+
     protected onInitialize(): void {
         super.onInitialize();
+
+        this.mainCamera = new WebGame.PerspectiveCamera(75, this.getWidth() / this.getHeight(), 1, 8192);
+        this.mainRenderContext = new WebGame.RenderContext(this, this.mainCamera);
 
         const gl = this.context;
 
@@ -15,5 +25,9 @@ class TestGame extends Facepunch.WebGame.Game {
         const gl = this.context;
 
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+    }
+
+    populateDrawList(drawList: WebGame.DrawList, camera: WebGame.Camera): void {
+        drawList.addItem(this.testObject);
     }
 }

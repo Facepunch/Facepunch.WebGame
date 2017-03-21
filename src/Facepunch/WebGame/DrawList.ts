@@ -56,39 +56,41 @@ namespace Facepunch {
                 let changedProgram = false;
                 let changedTransform = false;
 
+                const program = handle.material.program;
+
                 if (this.lastHandle.transform !== handle.transform) {
                     changedTransform = true;
                 }
 
                 if (this.lastHandle.material !== handle.material) {
                     changedMaterial = true;
-                    changedProgram = this.lastHandle.program !== handle.program;
+                    changedProgram = this.lastHandle.material === undefined || this.lastHandle.material.program !== program;
                     changedTransform = changedTransform || changedProgram;
                 }
 
                 if (changedProgram) {
-                    if (this.lastHandle.program !== undefined) {
-                        this.lastHandle.program.bufferDisableMeshComponents(buf);
+                    if (this.lastHandle.material !== undefined) {
+                        this.lastHandle.material.program.bufferDisableMeshComponents(buf);
                     }
 
-                    handle.program.bufferSetup(buf, context);
+                    program.bufferSetup(buf, context);
                 }
 
                 if (changedMaterial) {
-                    handle.program.bufferMaterial(buf, handle.material);
+                    program.bufferMaterial(buf, handle.material);
                 }
 
                 if (changedTransform) {
-                    handle.program.bufferModelMatrix(buf, handle.transform == null
+                    program.bufferModelMatrix(buf, handle.transform == null
                         ? DrawList.identityMatrix.elements : handle.transform.elements );
                 }
 
                 if (this.lastHandle.group !== handle.group || changedProgram) {
-                    handle.group.bufferBindBuffers(buf, handle.program);
+                    handle.group.bufferBindBuffers(buf, program);
                 }
 
                 if (this.lastHandle.vertexOffset !== handle.vertexOffset) {
-                    handle.group.bufferAttribPointers(buf, handle.program, handle.vertexOffset);
+                    handle.group.bufferAttribPointers(buf, program, handle.vertexOffset);
                 }
 
                 handle.group.bufferRenderElements(buf, handle.drawMode, handle.indexOffset, handle.indexCount);
@@ -116,6 +118,7 @@ namespace Facepunch {
                         if (handle.indexCount === 0) continue;
                         if (handle.material == null) continue;
                         if (!handle.material.enabled) continue;
+                        if (handle.material.program == null) continue;
                         if (!handle.material.program.isCompiled()) continue;
 
                         if (handle.material.properties.translucent || handle.material.properties.refract) {

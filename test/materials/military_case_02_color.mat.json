@@ -1,0 +1,10 @@
+{
+    "shader": "Facepunch.WebGame.Shaders.VertexLitGeneric",
+    "properties": [
+        {
+            "type": 3,
+            "name": "baseTexture",
+            "value": "military_case_02_color.tex.json"
+        }
+    ]
+}

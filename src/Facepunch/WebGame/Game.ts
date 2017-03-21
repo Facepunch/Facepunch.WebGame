@@ -8,6 +8,7 @@ namespace Facepunch {
             readonly shaders: ShaderManager;
             readonly meshes: MeshManager;
 
+            readonly materialLoader: MaterialLoader;
             readonly textureLoader: TextureLoader;
 
             private loaders: ILoader[] = [];
@@ -35,6 +36,7 @@ namespace Facepunch {
                 this.shaders = new ShaderManager(this.context);
                 this.meshes = new MeshManager(this);
 
+                this.materialLoader = this.addLoader(new MaterialLoader(this));
                 this.textureLoader = this.addLoader(new TextureLoader(this.context));
 
                 window.addEventListener("mousedown", evnt => {

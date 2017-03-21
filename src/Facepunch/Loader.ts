@@ -1,5 +1,5 @@
 namespace Facepunch {
-    export interface ILoadable<TLoadable> {
+    export interface ILoadable {
         loadNext(callback: (requeue: boolean) => void): void;
     }
 
@@ -7,7 +7,7 @@ namespace Facepunch {
         update(requestQuota: number): number;
     }
     
-    export abstract class Loader<TLoadable extends ILoadable<TLoadable>> implements ILoader {
+    export abstract class Loader<TLoadable extends ILoadable> implements ILoader {
         private queue: TLoadable[] = [];
         private loaded: { [url: string]: TLoadable } = {};
         private active = 0;

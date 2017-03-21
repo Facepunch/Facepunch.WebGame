@@ -55,6 +55,10 @@ namespace Facepunch {
                 }
             }
 
+            createMaterial(ctor: IProgramCtor): Material {
+                return new Material(this.getFromCtor(ctor));
+            }
+
             dispose(): void {
                 for (let name in this.namedPrograms) {
                     if (this.namedPrograms.hasOwnProperty(name)) {

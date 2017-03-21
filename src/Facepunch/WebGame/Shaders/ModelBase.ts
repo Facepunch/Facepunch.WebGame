@@ -50,28 +50,62 @@ namespace Facepunch {
                         return mix(inColor, uFogColor, fogDensity);
                     }`;
 
-                readonly frameColor: UniformSampler;
-                readonly frameDepth: UniformSampler;
+                readonly projectionMatrix: UniformMatrix4;
+                readonly viewMatrix: UniformMatrix4;
+                readonly modelMatrix: UniformMatrix4;
+
+                readonly baseTexture: UniformSampler;
+                readonly time: Uniform4F;
+                readonly fogParams: Uniform4F;
+                readonly fogColor: Uniform3F;
+                readonly noFog: Uniform1F;
 
                 constructor(context: WebGLRenderingContext) {
                     super(context);
 
                     const gl = context;
 
-                    this.includeShaderSource(gl.VERTEX_SHADER, ComposeFrame.vertSource);
-                    this.includeShaderSource(gl.FRAGMENT_SHADER, ComposeFrame.fragSource);
+                    this.includeShaderSource(gl.VERTEX_SHADER, ModelBase.vertSource);
+                    this.includeShaderSource(gl.FRAGMENT_SHADER, ModelBase.fragSource);
 
-                    this.addAttribute("aScreenPos", VertexAttribute.uv);
-
-                    this.frameColor = this.addUniform("uFrameColor", UniformSampler);
-                    this.frameDepth = this.addUniform("uFrameDepth", UniformSampler);
+                    this.projectionMatrix = this.addUniform("uProjection", UniformMatrix4);
+                    this.viewMatrix = this.addUniform("uView", UniformMatrix4);
+                    this.modelMatrix = this.addUniform("uModel", UniformMatrix4);
                 }
 
                 bufferSetup(buf: CommandBuffer, context: RenderContext): void {
                     super.bufferSetup(buf, context);
 
-                    this.frameColor.bufferValue(buf, context.getOpaqueColorTexture());
-                    this.frameDepth.bufferValue(buf, context.getOpaqueDepthTexture());
+                    this.projectionMatrix.bufferParameter(buf, CommandBufferParameter.ProjectionMatrix);
+                    this.viewMatrix.bufferParameter(buf, CommandBufferParameter.ViewMatrix);
+
+                    this.time.bufferParameter(buf, CommandBufferParameter.TimeParams);
+                    this.fogParams.bufferParameter(buf, CommandBufferParameter.FogParams);
+                    this.fogColor.bufferParameter(buf, CommandBufferParameter.FogColor);
+                }
+                
+                bufferModelMatrix(buf: CommandBuffer, value: Float32Array): void {
+                    super.bufferModelMatrix(buf, value);
+
+                    this.modelMatrix.bufferValue(buf, false, value);
+                }
+
+                bufferMaterial(buf: CommandBuffer, material: Material): void {
+                    super.bufferMaterial(buf, material);
+
+                    this.baseTexture.bufferValue(buf, material.properties.baseTexture);
+                    this.noFog.bufferValue(buf, material.properties.noFog ? 1 : 0);
+
+                    const gl = this.context;
+
+                    if (material.properties.translucent) {
+                        buf.depthMask(false);
+                        buf.enable(gl.BLEND);
+                        buf.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+                    } else {
+                        buf.depthMask(true);
+                        buf.disable(gl.BLEND);
+                    }
                 }
             }
         }

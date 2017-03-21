@@ -58,7 +58,7 @@ namespace Facepunch {
             }
 
             compareMaterials(a: Material, b: Material): number {
-                return a.sortIndex - b.sortIndex;
+                return a.id - b.id;
             }
 
             getProgram(): WebGLProgram {

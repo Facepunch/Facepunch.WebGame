@@ -1,9 +1,9 @@
 namespace Facepunch {
     export namespace WebGame {
         export enum MaterialPropertyType {
-            Boolean,
-            Number,
-            TextureUrl
+            Boolean = 1,
+            Number = 2,
+            TextureUrl = 3
         }
 
         export interface IMaterialProperty {
@@ -18,45 +18,62 @@ namespace Facepunch {
         }
 
         export class Material {
-            private static nextSortIndex = 0;
+            private static nextId = 0;
 
-            readonly sortIndex: number;
-
+            readonly id = Material.nextId++;
             readonly properties: any = {};
-            readonly program: ShaderProgram;
 
+            program: ShaderProgram;
             enabled = true;
 
-            constructor(game: Game, info: IMaterialInfo);
-            constructor(game: Game, shaderCtor: IProgramCtor);
-            constructor(game: Game, shaderName: string);
-            constructor(game: Game, infoOrShader: IMaterialInfo | IProgramCtor | string) {
-                this.sortIndex = Material.nextSortIndex++;
+            constructor();
+            constructor(program: ShaderProgram);
+            constructor(program?: ShaderProgram) {
+                this.program = program;
+            }
+        }
 
-                if (typeof infoOrShader === "string") {
-                    this.program = game.shaders.get(infoOrShader as string);
-                } else if (typeof infoOrShader === "function") {
-                    this.program = game.shaders.get(infoOrShader as IProgramCtor);
-                } else {
-                    const info = infoOrShader as IMaterialInfo;
-                    this.program = game.shaders.get(info.shader);
+        export class MaterialLoadable extends Material implements ILoadable {
+            private readonly game: Game;
+            private readonly url: string;
 
-                    for (let i = 0; i < info.properties.length; ++i) {
-                        this.addPropertyFromInfo(game, info.properties[i]);
-                    }
-                }
+            constructor(game: Game, url: string) {
+                super();
+
+                this.game = game;
+                this.url = url;
             }
 
-            private addPropertyFromInfo(game: Game, info: IMaterialProperty): void {
+            private addPropertyFromInfo(info: IMaterialProperty): void {
                 switch (info.type) {
                     case MaterialPropertyType.Boolean:
                     case MaterialPropertyType.Number:
                         this.properties[info.name] = info.value as boolean | number;
                         break;
                     case MaterialPropertyType.TextureUrl:
-                        this.properties[info.name] = game.textureLoader.load(info.value as string);
+                        this.properties[info.name] = this.game.textureLoader.load(info.value as string);
                         break;
                 }
+            }
+            
+            loadNext(callback: (requeue: boolean) => void): void {
+                if (this.program != null) {
+                    callback(false);
+                    return;
+                }
+
+                Http.getJson<IMaterialInfo>(this.url, info => {
+                    this.program = this.game.shaders.get(info.shader);
+
+                    for (let i = 0; i < info.properties.length; ++i) {
+                        this.addPropertyFromInfo(info.properties[i]);
+                    }
+
+                    callback(false);
+                }, error => {
+                    console.error(`Failed to load material ${this.url}: ${error}`);
+                    callback(false);
+                });
             }
         }
     }

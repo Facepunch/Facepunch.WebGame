@@ -59,7 +59,7 @@ namespace Facepunch {
                     elements: [
                         {
                             mode: DrawMode.Triangles,
-                            material: new Material(this.game, Facepunch.WebGame.Shaders.ComposeFrame),
+                            material: this.game.shaders.createMaterial(Facepunch.WebGame.Shaders.ComposeFrame),
                             indexOffset: 0,
                             indexCount: 6
                         }
