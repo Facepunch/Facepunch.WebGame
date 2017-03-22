@@ -7,11 +7,11 @@ namespace Facepunch {
 
             parameters?: { [param: number]: Float32Array | Texture };
             parameter?: CommandBufferParameter;
-            program?: WebGLProgram;
+            program?: ShaderProgram;
             uniform?: Uniform;
             target?: number;
             unit?: number;
-            texture?: WebGLTexture;
+            texture?: Texture;
             transpose?: boolean;
             values?: Float32Array;
             context?: RenderContext;
@@ -81,21 +81,50 @@ namespace Facepunch {
                 return undefined;
             }
 
-            logCommands(): void {
+            logCommands(): string {
+                const commands: string[] = [];
+
                 for (let i = 0, iEnd = this.commands.length; i < iEnd; ++i) {
                     const command = this.commands[i];
                     let params: string[] = [];
 
                     for (let name in command) {
-                        if (typeof command[name] !== "function") {
-                            params.push(`${name}: ${command[name]}`);
+                        let value = command[name];
+                        if (typeof value === "function") continue;
+                        
+                        switch (name) {
+                            case "target":
+                            case "unit":
+                            case "cap":
+                            case "mode":
+                            case "type":
+                                value = `GL_${WebGl.encodeConst(value as number)}`;
+                                break;
+                            case "parameter":
+                            case "parameters":
+                                value = undefined;
+                                break;
+                        }
+
+                        if (value !== undefined) params.push(`${name}: ${value}`);
+                    }
+                    
+                    if (command.parameter !== undefined && command.parameters !== undefined) {
+                        const value = command.parameters[command.parameter];
+
+                        if ((value as Float32Array).length !== undefined) {
+                            params.push(`[${value}]`);
+                        } else {
+                            params.push(value.toString());
                         }
                     }
 
                     const paramsJoined = params.join(", ");
 
-                    console.log(`${this.getCommandName(command.action)}(${paramsJoined})`);
+                    commands.push(`${this.getCommandName(command.action)}(${paramsJoined});`);
                 }
+
+                return commands.join("\r\n");
             }
 
             clearCommands(): void {
@@ -179,11 +208,11 @@ namespace Facepunch {
             }
 
             useProgram(program: ShaderProgram): void {
-                this.push(this.onUseProgram, { program: program.getProgram() });
+                this.push(this.onUseProgram, { program: program });
             }
 
             private onUseProgram(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                gl.useProgram(args.program);
+                gl.useProgram(args.program == null ? null : args.program.getProgram());
             }
 
             setUniformParameter(uniform: Uniform, parameter: CommandBufferParameter): void {
@@ -293,12 +322,12 @@ namespace Facepunch {
                 this.boundTextures[unit] = value;
 
                 this.push(this.onBindTexture,
-                    { unit: unit + this.context.TEXTURE0, target: value.getTarget(), texture: value.getHandle() });
+                    { unit: unit + this.context.TEXTURE0, target: value.getTarget(), texture: value });
             }
 
             private onBindTexture(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
                 gl.activeTexture(args.unit);
-                gl.bindTexture(args.target, args.texture);
+                gl.bindTexture(args.target, args.texture.getHandle());
             }
 
             bindBuffer(target: number, buffer: WebGLBuffer): void {

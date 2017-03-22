@@ -1,28 +1,12 @@
 {
     "target": "TEXTURE_2D",
     "width": 1024, "height": 1024,
-    "params": [
-        {
-            "type": "INT",
-            "name": "TEXTURE_WRAP_S",
-            "value": "REPEAT"
-        },
-        {
-            "type": "INT",
-            "name": "TEXTURE_WRAP_T",
-            "value": "REPEAT"
-        },
-        {
-            "type": "INT",
-            "name": "TEXTURE_MIN_FILTER",
-            "value": "LINEAR_MIPMAP_LINEAR"
-        },
-        {
-            "type": "INT",
-            "name": "TEXTURE_MAG_FILTER",
-            "value": "LINEAR"
-        }
-    ],
+    "params": {
+        "wrapS": "REPEAT",
+        "wrapT": "REPEAT",
+        "filter": "LINEAR",
+        "mipmap": true
+    },
     "elements": [
         { "level": 10, "color": { "r": 82, "g": 93, "b": 87 } },
         { "level": 9, "url": "military_case_02_color.mip9.png" },

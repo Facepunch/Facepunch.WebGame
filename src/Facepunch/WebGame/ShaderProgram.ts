@@ -31,6 +31,7 @@ namespace Facepunch {
 
             constructor(context: WebGLRenderingContext) {
                 this.context = context;
+                this.toString = () => (this.constructor as any).name;
             }
 
             createMaterialProperties(): any {

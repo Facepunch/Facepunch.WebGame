@@ -196,6 +196,8 @@ namespace Facepunch {
             constructor(context: WebGLRenderingContext, width: number, height: number) {
                 super(context, TextureTarget.Texture2D, TextureFormat.Rgba,
                     TextureDataType.Uint8, width, height);
+
+                this.setWrapMode(TextureWrapMode.Repeat);
             }
 
             setPixelRgb(x: number, y: number, rgb: number): void {
@@ -226,7 +228,7 @@ namespace Facepunch {
                 buffer[0] = color.r;
                 buffer[1] = color.g;
                 buffer[2] = color.b;
-                buffer[3] = color.a;
+                buffer[3] = color.a === undefined ? 0xff : color.a;
 
                 this.setPixel(x, y, buffer);
             }
@@ -340,7 +342,7 @@ namespace Facepunch {
                 if (this.whiteTexture != null) return this.whiteTexture;
 
                 this.whiteTexture = new ProceduralTexture2D(context, 1, 1);
-                this.whiteTexture.setPixelRgba(0, 0, 0xffffffff);
+                this.whiteTexture.setPixelRgb(0, 0, 0xffffff);
                 this.whiteTexture.apply();
 
                 return this.whiteTexture;
@@ -351,7 +353,7 @@ namespace Facepunch {
                 if (this.blackTexture != null) return this.blackTexture;
 
                 this.blackTexture = new ProceduralTexture2D(context, 1, 1);
-                this.blackTexture.setPixelRgba(0, 0, 0x000000ff);
+                this.blackTexture.setPixelRgb(0, 0, 0x000000);
                 this.blackTexture.apply();
 
                 return this.blackTexture;
@@ -379,7 +381,7 @@ namespace Facepunch {
                 for (let y = 0; y < size; ++y) {
                     for (let x = 0; x < size; ++x) {
                         const magenta = ((x >> 4) & 1) === ((y >> 4) & 1);
-                        this.errorTexture.setPixelRgba(x, y, magenta ? 0xff00ffff : 0x000000ff);
+                        this.errorTexture.setPixelRgb(x, y, magenta ? 0xff00ff : 0x000000);
                     }
                 }
 
@@ -389,10 +391,16 @@ namespace Facepunch {
             }
         }
 
-        export interface ITextureParameter {
-            type: TextureParameterType | string;
-            name: TextureParameter | string;
-            value: TextureWrapMode | TextureMinFilter | TextureMagFilter | string;
+        export enum TextureFilter {
+            Nearest = WebGLRenderingContext.NEAREST,
+            Linear = WebGLRenderingContext.LINEAR
+        }
+
+        export interface ITextureParameters {
+            wrapS: TextureWrapMode | "CLAMP_TO_EDGE" | "REPEAT" | "MIRRORED_REPEAT";
+            wrapT: TextureWrapMode | "CLAMP_TO_EDGE" | "REPEAT" | "MIRRORED_REPEAT";
+            filter: TextureFilter | "NEAREST" | "LINEAR";
+            mipmap: boolean;
         }
 
         export interface IColor {
@@ -413,7 +421,7 @@ namespace Facepunch {
             target: TextureTarget | string,
             width: number;
             height: number;
-            params: ITextureParameter[],
+            params: ITextureParameters,
             elements: ITextureElement[]
         }
 
@@ -427,11 +435,16 @@ namespace Facepunch {
             private handle: WebGLTexture;
             private target: TextureTarget;
 
+            private filter: TextureFilter;
+            private mipmap: boolean;
+
             constructor(context: WebGLRenderingContext, url: string) {
                 super();
 
                 this.context = context;
                 this.url = url;
+
+                this.toString = () => `url(${url})`;
             }
 
             getTarget(): TextureTarget {
@@ -454,21 +467,16 @@ namespace Facepunch {
 
             private applyTexParameters(): void {
                 const gl = this.context;
+                const params = this.info.params;
 
-                for (let i = 0; i < this.info.params.length; ++i) {
-                    const param = this.info.params[i];
-                    switch (WebGl.decodeConst(param.type)) {
-                        case gl.INT:
-                            gl.texParameteri(this.target, WebGl.decodeConst(param.name), WebGl.decodeConst(param.value));
-                            break;
-                        case gl.FLOAT:
-                            gl.texParameteri(this.target, WebGl.decodeConst(param.name), WebGl.decodeConst(param.value));
-                            break;
-                        default:
-                            console.warn(`Unknown texture parameter type '${param.type}'.`);
-                            break;
-                    }
-                }
+                gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, WebGl.decodeConst(params.wrapS, TextureWrapMode.Repeat));
+                gl.texParameteri(this.target, gl.TEXTURE_WRAP_T, WebGl.decodeConst(params.wrapT, TextureWrapMode.Repeat));
+
+                this.filter = WebGl.decodeConst(params.filter, TextureFilter.Linear);
+                this.mipmap = params.mipmap === undefined ? false : params.mipmap;
+
+                gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, this.filter);
+                gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, TextureMagFilter.Nearest);
             }
 
             private getOrCreateHandle(): WebGLTexture {
@@ -517,12 +525,21 @@ namespace Facepunch {
                 const gl = this.context;
                 gl.texImage2D(target, level, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, values);
 
+                if (level > 0) {
+                    gl.texImage2D(target, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, values);
+                }
+
                 return true;
             }
 
             private loadImageElement(target: TextureTarget, level: number, image: HTMLImageElement): boolean {
                 const gl = this.context;
                 gl.texImage2D(target, level, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+                if (level > 0) {
+                    gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                }
+
                 return true;
             }
 
@@ -542,6 +559,15 @@ namespace Facepunch {
                 } else {
                     console.error("Attempted to load a null texture element.");
                     success = false;
+                }
+
+                if (this.nextElement >= this.info.elements.length && this.mipmap) {
+                    const minFilter = this.filter === TextureFilter.Nearest
+                        ? TextureMinFilter.NearestMipmapLinear
+                        : TextureMinFilter.LinearMipmapLinear;
+
+                    gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, minFilter);
+                    gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                 }
 
                 gl.bindTexture(this.target, null);

@@ -70,8 +70,25 @@ namespace Facepunch {
     }
 
     export class WebGl {
-        static decodeConst<TEnum extends number>(valueOrIdent: TEnum | string): TEnum {
+        static decodeConst<TEnum extends number>(valueOrIdent: TEnum | string, defaultValue?: TEnum): TEnum {
+            if (valueOrIdent === undefined) return defaultValue;
             return (typeof valueOrIdent === "number" ? valueOrIdent : WebGLRenderingContext[valueOrIdent]) as TEnum;
+        }
+
+        private static constDict: {[value:number]: string};
+
+        static encodeConst(value: number): string {
+            if (WebGl.constDict == null) {
+                WebGl.constDict = {};
+
+                for (let name in WebGLRenderingContext) {
+                    const val = WebGLRenderingContext[name];
+                    if (typeof val !== "number") continue;
+                    WebGl.constDict[val] = name;
+                }
+            }
+
+            return WebGl.constDict[value];
         }
     }
 }

@@ -162,6 +162,7 @@ namespace Facepunch {
 
                 if (this.lastHandle.material !== undefined) {
                     this.lastHandle.material.program.bufferDisableMeshComponents(buf);
+                    buf.useProgram(null);
                 }
             }
         }
