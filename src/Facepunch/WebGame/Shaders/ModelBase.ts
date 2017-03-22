@@ -117,6 +117,8 @@ namespace Facepunch {
 
                     const gl = this.context;
 
+                    buf.enable(gl.DEPTH_TEST);
+
                     if (props.translucent) {
                         buf.depthMask(false);
                         buf.enable(gl.BLEND);

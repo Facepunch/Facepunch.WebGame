@@ -248,7 +248,7 @@ namespace Facepunch {
         }
 
         export class BaseMaterialProps {
-            noCull = true;
+            noCull = false;
         }
 
         export abstract class BaseShaderProgram<TMaterialProps extends BaseMaterialProps> extends ShaderProgram {

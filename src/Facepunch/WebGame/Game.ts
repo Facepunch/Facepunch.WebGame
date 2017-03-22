@@ -27,6 +27,7 @@ namespace Facepunch {
             private heldMouseButtons: boolean[] = new Array(8);
             
             private mouseScreenPos = new Vector2();
+            private mouseLookDelta = new Vector2();
 
             constructor(container: HTMLElement) {
                 this.container = container;
@@ -41,15 +42,31 @@ namespace Facepunch {
                 this.textureLoader = this.addLoader(new TextureLoader(this.context));
                 this.modelLoader = this.addLoader(new ModelLoader(this));
 
-                window.addEventListener("mousedown", evnt => {
+                container.addEventListener("mousedown", evnt => {
                     this.heldMouseButtons[evnt.which] = true;
                     this.onMouseDown(evnt.which as MouseButton,
                         this.getScreenPos(evnt.pageX, evnt.pageY, this.mouseScreenPos));
-                    if (this.canLockPointer) this.container[0].requestPointerLock();
+                    if (this.canLockPointer) this.container.requestPointerLock();
                     return false;
                 });
 
-                window.addEventListener("keydown", evnt => {
+                window.addEventListener("mouseup", evnt => {
+                    this.heldMouseButtons[evnt.which] = false;
+                    this.onMouseUp(evnt.which as MouseButton,
+                        this.getScreenPos(evnt.pageX, evnt.pageY, this.mouseScreenPos));
+                });
+
+                window.addEventListener("mousemove", evnt => {
+                    this.onMouseMove(this.getScreenPos(evnt.pageX, evnt.pageY, this.mouseScreenPos))
+                
+                    if (this.isPointerLocked()) {
+                        const e = evnt as any;
+                        this.mouseLookDelta.set(e.movementX, e.movementY);
+                        this.onMouseLook(this.mouseLookDelta);
+                    }
+                });
+
+                container.addEventListener("keydown", evnt => {
                     if (evnt.which < 0 || evnt.which >= 128) return true;
                     this.heldKeys[evnt.which] = true;
                     this.onKeyDown(evnt.which as Key);
@@ -163,6 +180,9 @@ namespace Facepunch {
             
             protected onMouseDown(button: MouseButton, screenPos: Vector2): void {}
             protected onMouseUp(button: MouseButton, screenPos: Vector2): void {}
+
+            protected onMouseMove(screenPos: Vector2): void {}
+            protected onMouseLook(delta: Vector2): void {}
             
             protected onKeyDown(key: Key): void {}
             protected onKeyUp(key: Key): void {}
