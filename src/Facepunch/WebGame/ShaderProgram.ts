@@ -158,7 +158,10 @@ namespace Facepunch {
                 const gl = this.context;
                 const loc = gl.getAttribLocation(this.program, name);
 
-                if (loc === -1) throw `Unable to find attribute with name '${name}'.`;
+                if (loc === -1) {
+                    console.warn(`Unable to find attribute with name '${name}'.`);
+                    return;
+                }
 
                 this.attribIds.push(attrib.id);
                 this.attribLocations[attrib.id] = loc;

@@ -18,7 +18,7 @@ class TestGame extends WebGame.Game {
         this.mainCamera = new WebGame.PerspectiveCamera(75, this.getWidth() / this.getHeight(), 1, 8192);
         this.mainRenderContext = new WebGame.RenderContext(this, this.mainCamera);
 
-        this.mainCamera.setPosition(0, 0, 256);
+        this.mainCamera.setPosition(0, 128, 64);
 
         this.testObject = new WebGame.StaticProp();
         this.testObject.setModel(this.modelLoader.load("/models/military_case_02.model.json"));
@@ -54,6 +54,25 @@ class TestGame extends WebGame.Game {
 
         this.lookAngs.sub(delta.multiplyScalar(1 / 800));
         this.updateCameraAngles();
+    }
+
+    private readonly move = new Facepunch.Vector3();
+
+    protected onUpdateFrame(dt: number): void {
+        super.onUpdateFrame(dt);
+
+        this.move.set(0, 0, 0);
+        const moveSpeed = 512 * dt;
+
+        if (this.isKeyDown(WebGame.Key.W)) this.move.z -= moveSpeed;
+        if (this.isKeyDown(WebGame.Key.S)) this.move.z += moveSpeed;
+        if (this.isKeyDown(WebGame.Key.A)) this.move.x -= moveSpeed;
+        if (this.isKeyDown(WebGame.Key.D)) this.move.x += moveSpeed;
+
+        if (this.move.lengthSq() > 0) {
+            this.mainCamera.applyRotationTo(this.move);
+            this.mainCamera.translate(this.move);
+        }
     }
 
     protected onRenderFrame(dt: number): void {

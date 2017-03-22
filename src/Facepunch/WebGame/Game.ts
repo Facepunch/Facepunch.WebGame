@@ -66,7 +66,7 @@ namespace Facepunch {
                     }
                 });
 
-                container.addEventListener("keydown", evnt => {
+                window.addEventListener("keydown", evnt => {
                     if (evnt.which < 0 || evnt.which >= 128) return true;
                     this.heldKeys[evnt.which] = true;
                     this.onKeyDown(evnt.which as Key);
@@ -157,11 +157,11 @@ namespace Facepunch {
             }
             
             isKeyDown(key: Key): boolean {
-                return key >= 0 && key < 128 && this.heldKeys[key];
+                return key >= 0 && key < 128 && this.heldKeys[key] === true;
             }
 
             isMouseButtonDown(button: MouseButton): boolean {
-                return button >= 0 && button < this.heldMouseButtons.length && this.heldMouseButtons[button];
+                return button >= 0 && button < this.heldMouseButtons.length && this.heldMouseButtons[button] === true;
             }
 
             protected onInitialize(): void {}
