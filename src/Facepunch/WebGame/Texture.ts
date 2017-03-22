@@ -21,7 +21,8 @@ namespace Facepunch {
 
         export enum TextureFormat {
             Rgb = WebGLRenderingContext.RGB,
-            Rgba = WebGLRenderingContext.RGBA
+            Rgba = WebGLRenderingContext.RGBA,
+            DepthComponent = WebGLRenderingContext.DEPTH_COMPONENT
         }
 
         export enum TextureDataType {
@@ -29,85 +30,6 @@ namespace Facepunch {
             Uint16 = WebGLRenderingContext.UNSIGNED_SHORT,
             Uint32 = WebGLRenderingContext.UNSIGNED_INT,
             Float = WebGLRenderingContext.FLOAT
-        }
-
-        export class RenderTexture extends Texture {
-            private readonly context: WebGLRenderingContext;
-            private readonly target: TextureTarget;
-            private readonly format: TextureFormat;
-            private readonly type: TextureDataType;
-
-            private width: number;
-            private height: number;
-
-            private handle: WebGLTexture;
-
-            constructor(context: WebGLRenderingContext, format: TextureFormat, type: TextureDataType,
-                width: number, height: number) {
-                super();
-
-                this.context = context;
-                this.target = TextureTarget.Texture2D;
-                this.format = format;
-                this.type = type;
-                this.handle = context.createTexture();
-
-                this.setWrapMode(TextureWrapMode.ClampToEdge);
-                this.setFilter(TextureMinFilter.Linear, TextureMagFilter.Nearest);
-
-                this.resize(width, height);
-            }
-
-            setWrapMode(mode: TextureWrapMode): void;
-            setWrapMode(wrapS: TextureWrapMode, wrapT: TextureWrapMode): void;
-            setWrapMode(wrapS: TextureWrapMode, wrapT?: TextureWrapMode): void {
-                if (wrapT === undefined) wrapT = wrapS;
-
-                const gl = this.context;
-                gl.bindTexture(this.target, this.handle);
-
-                gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, wrapS);
-                gl.texParameteri(this.target, gl.TEXTURE_WRAP_T, wrapT);
-                
-                gl.bindTexture(this.target, null);
-            }
-
-            setFilter(minFilter: TextureMinFilter, magFilter: TextureMagFilter): void {
-                const gl = this.context;
-                gl.bindTexture(this.target, this.handle);
-
-                gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, minFilter);
-                gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, magFilter);
-                
-                gl.bindTexture(this.target, null);
-            }
-            
-            getTarget(): TextureTarget {
-                return this.context.TEXTURE_2D;
-            }
-
-            getHandle(): WebGLTexture {
-                return this.handle;
-            }
-
-            resize(width: number, height: number): void {
-                if (this.width === width && this.height === height) return;
-
-                const gl = this.context;
-
-                this.width = width;
-                this.height = height;
-
-                gl.bindTexture(this.target, this.handle);
-                gl.texImage2D(this.target, 0, this.format, width, height, 0, this.format, this.type, null);
-                gl.bindTexture(this.target, null);
-            }
-
-            dispose(): void {
-                if (this.handle === undefined) return;
-                this.context.deleteTexture(this.handle);
-                this.handle = undefined;
-            }
         }
 
         export enum TextureTarget {
@@ -145,6 +67,271 @@ namespace Facepunch {
             WrapT = WebGLRenderingContext.TEXTURE_WRAP_T,
             MinFilter = WebGLRenderingContext.TEXTURE_MIN_FILTER,
             MagFilter = WebGLRenderingContext.TEXTURE_MAG_FILTER
+        }
+
+        export class RenderTexture extends Texture {
+            readonly context: WebGLRenderingContext;
+
+            readonly target: TextureTarget;
+            readonly format: TextureFormat;
+            readonly type: TextureDataType;
+
+            private width: number;
+            private height: number;
+
+            private handle: WebGLTexture;
+
+            constructor(context: WebGLRenderingContext, target: TextureTarget, format: TextureFormat, type: TextureDataType,
+                width: number, height: number) {
+                super();
+
+                this.context = context;
+                this.target = target;
+                this.format = format;
+                this.type = type;
+                this.handle = context.createTexture();
+
+                this.setWrapMode(TextureWrapMode.ClampToEdge);
+                this.setFilter(TextureMinFilter.Linear, TextureMagFilter.Nearest);
+
+                this.resize(width, height);
+            }
+
+            setWrapMode(mode: TextureWrapMode): void;
+            setWrapMode(wrapS: TextureWrapMode, wrapT: TextureWrapMode): void;
+            setWrapMode(wrapS: TextureWrapMode, wrapT?: TextureWrapMode): void {
+                if (wrapT === undefined) wrapT = wrapS;
+
+                const gl = this.context;
+                gl.bindTexture(this.target, this.handle);
+
+                gl.texParameteri(this.target, gl.TEXTURE_WRAP_S, wrapS);
+                gl.texParameteri(this.target, gl.TEXTURE_WRAP_T, wrapT);
+                
+                gl.bindTexture(this.target, null);
+            }
+
+            setFilter(minFilter: TextureMinFilter, magFilter: TextureMagFilter): void {
+                const gl = this.context;
+                gl.bindTexture(this.target, this.handle);
+
+                gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, minFilter);
+                gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, magFilter);
+                
+                gl.bindTexture(this.target, null);
+            }
+            
+            getTarget(): TextureTarget {
+                return this.target;
+            }
+
+            getHandle(): WebGLTexture {
+                return this.handle;
+            }
+
+            resize(width: number, height: number): void {
+                if (this.width === width && this.height === height) return;
+
+                const gl = this.context;
+
+                this.width = width;
+                this.height = height;
+
+                gl.bindTexture(this.target, this.handle);
+                gl.texImage2D(this.target, 0, this.format, width, height, 0, this.format, this.type, null);
+                gl.bindTexture(this.target, null);
+
+                this.onResize(width, height);
+            }
+
+            protected onResize(width: number, height: number) {}
+
+            dispose(): void {
+                if (this.handle === undefined) return;
+                this.context.deleteTexture(this.handle);
+                this.handle = undefined;
+            }
+        }
+
+        export interface IPixelData {
+            readonly channels: number;
+            readonly width: number;
+            readonly height: number;
+            readonly values: ArrayBufferView;
+        }
+
+        export class Uint8PixelData implements IPixelData {
+            readonly channels: number;
+            readonly width: number;
+            readonly height: number;
+            readonly values: Uint8Array;
+            
+            constructor(format: TextureFormat, width: number, height: number) {
+                this.width = width;
+                this.height = height;
+
+                switch (format) {
+                    case TextureFormat.DepthComponent:
+                        this.channels = 1;
+                        break;
+                    case TextureFormat.Rgb:
+                        this.channels = 3;
+                        break;
+                    case TextureFormat.Rgba:
+                        this.channels = 4;
+                        break;
+                    default:
+                        throw new Error("Texture format not implemented.");
+                }
+
+                this.values = new Uint8Array(this.channels * width * height);
+            }
+        }
+
+        export class ProceduralTexture2D extends RenderTexture {
+            private pixels: IPixelData;
+
+            private static readonly channelBuffer: number[] = [0, 0, 0, 0];
+
+            constructor(context: WebGLRenderingContext, width: number, height: number) {
+                super(context, TextureTarget.Texture2D, TextureFormat.Rgba,
+                    TextureDataType.Uint8, width, height);
+            }
+
+            setPixelRgb(x: number, y: number, rgb: number): void {
+                const buffer = ProceduralTexture2D.channelBuffer;
+
+                buffer[0] = (rgb >> 16) & 0xff;
+                buffer[1] = (rgb >> 8) & 0xff;
+                buffer[2] = rgb & 0xff;
+                buffer[3] = 0xff;
+
+                this.setPixel(x, y, buffer);
+            }
+
+            setPixelRgba(x: number, y: number, rgba: number): void {
+                const buffer = ProceduralTexture2D.channelBuffer;
+
+                buffer[0] = (rgba >> 24) & 0xff;
+                buffer[1] = (rgba >> 16) & 0xff;
+                buffer[2] = (rgba >> 8) & 0xff;
+                buffer[3] = rgba & 0xff;
+
+                this.setPixel(x, y, buffer);
+            }
+
+            setPixelColor(x: number, y: number, color: IColor): void {
+                const buffer = ProceduralTexture2D.channelBuffer;
+
+                buffer[0] = color.r;
+                buffer[1] = color.g;
+                buffer[2] = color.b;
+                buffer[3] = color.a;
+
+                this.setPixel(x, y, buffer);
+            }
+
+            setPixel(x: number, y: number, channels: number[]): void {
+                const pixels = this.pixels;
+                const index = (x + y * pixels.width) * pixels.channels;
+                const channelCount = pixels.channels < channels.length
+                    ? pixels.channels : channels.length;
+
+                for (let i = 0; i < channelCount; ++i) {
+                    pixels.values[index + i] = channels[i];
+                }
+            }
+
+            getPixelColor(x: number, y: number, target?: IColor): IColor {                
+                const buffer = ProceduralTexture2D.channelBuffer;
+
+                buffer[0] = buffer[1] = buffer[2] = 0;
+                buffer[3] = 0xff;
+
+                this.getPixel(x, y, buffer, 0);
+
+                if (target == null) return {r: buffer[0], g: buffer[1], b: buffer[2], a: buffer[3]};
+                
+                target.r = buffer[0];
+                target.g = buffer[1];
+                target.b = buffer[2];
+                target.a = buffer[3];
+
+                return target;
+            }
+
+            getPixel(x: number, y: number, target?: number[], dstIndex?: number): number[] {
+                const pixels = this.pixels;
+                if (target == null) target = new Array<number>(pixels.channels);
+                if (dstIndex === undefined) dstIndex = 0;
+
+                const index = (x + y * pixels.width) * pixels.channels;
+                const channelCount = pixels.channels < target.length
+                    ? pixels.channels : target.length;
+
+                for (let i = 0; i < channelCount; ++i) {
+                    target[dstIndex + i] = pixels.values[index + i];
+                }
+
+                return target;
+            }
+
+            setPixels(x: number, y: number, width: number, height: number, values: number[]): void {
+                const pixels = this.pixels;
+
+                if (x < 0 || x + width > pixels.width || y < 0 || y + height > pixels.height) {
+                    throw new Error("Image region out of bounds.");
+                }
+
+                const imageValues = pixels.values;
+                const channels = pixels.channels;
+
+                if (values.length < width * height * channels) {
+                    throw new Error(`Expected at least ${width * height * channels} values.`);
+                }
+
+                const rowLength = pixels.width * channels;
+                const scanLength = width * channels;
+
+                let startIndex = (x + y * pixels.width) * channels;
+                let i = 0;
+
+                for (let row = y, rowEnd = y + height; row < rowEnd; ++row, startIndex += rowLength) {
+                    for (let index = startIndex, indexEnd = index + scanLength; index < indexEnd; index += channels) {
+                        imageValues[index] = values[i];
+                    }
+                }
+            }
+
+            apply(): void {
+                const gl = this.context;
+
+                gl.bindTexture(this.target, this.getHandle());
+                gl.texImage2D(this.target, 0, this.format,
+                    this.pixels.width, this.pixels.height,
+                    0, this.format, this.type, this.pixels.values);
+                gl.bindTexture(this.target, null);
+            }
+
+            applyRegion(x: number, y: number, width: number, height: number): void {
+                const gl = this.context;
+
+                gl.bindTexture(this.target, this.getHandle());
+                gl.texSubImage2D(this.target, 0, x, y,
+                    this.pixels.width, this.pixels.height, this.format,
+                    this.type, this.pixels.values);
+                gl.bindTexture(this.target, null);
+            }
+
+            protected onResize(width: number, height: number) {
+                switch (this.type) {
+                    case TextureDataType.Uint8:
+                        this.pixels = new Uint8PixelData(this.format, width, height);
+                        break;
+                    default:
+                        throw new Error("Texture data type not implemented.");
+                }
+            }
         }
 
         export interface ITextureParameter {

@@ -16,7 +16,9 @@ namespace Facepunch {
                 this.width = width;
                 this.height = height;
 
-                this.frameTexture = new RenderTexture(gl, width, height, gl.RGBA, gl.UNSIGNED_BYTE);
+                this.frameTexture = new RenderTexture(gl,
+                    TextureTarget.Texture2D, TextureFormat.Rgba,
+                    TextureDataType.Uint8, width, height);
 
                 this.frameBuffer = gl.createFramebuffer();
 
@@ -46,7 +48,9 @@ namespace Facepunch {
                 const gl = this.context;
 
                 if (existing == null) {
-                    this.depthTexture = new RenderTexture(gl, this.width, this.height, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT);
+                    this.depthTexture = new RenderTexture(gl,
+                        TextureTarget.Texture2D, TextureFormat.DepthComponent,
+                        TextureDataType.Uint32, this.width, this.height);
                 } else {
                     this.depthTexture = existing;
                 }
