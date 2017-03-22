@@ -45,6 +45,13 @@ namespace Facepunch {
     }
 
     export class Vector3 implements IVector3 {
+        static readonly zero = new Vector3(0, 0, 0);
+        static readonly one = new Vector3(1, 1, 1);
+        
+        static readonly unitX = new Vector3(1, 0, 0);
+        static readonly unitY = new Vector3(0, 1, 0);
+        static readonly unitZ = new Vector3(0, 0, 1);
+
         x: number;
         y: number;
         z: number;
