@@ -334,6 +334,61 @@ namespace Facepunch {
             }
         }
 
+        export class TextureUtils {
+            private static whiteTexture: ProceduralTexture2D;
+            static getWhiteTexture(context: WebGLRenderingContext): Texture {
+                if (this.whiteTexture != null) return this.whiteTexture;
+
+                this.whiteTexture = new ProceduralTexture2D(context, 1, 1);
+                this.whiteTexture.setPixelRgba(0, 0, 0xffffffff);
+                this.whiteTexture.apply();
+
+                return this.whiteTexture;
+            }
+            
+            private static blackTexture: ProceduralTexture2D;
+            static getBlackTexture(context: WebGLRenderingContext): Texture {
+                if (this.blackTexture != null) return this.blackTexture;
+
+                this.blackTexture = new ProceduralTexture2D(context, 1, 1);
+                this.blackTexture.setPixelRgba(0, 0, 0x000000ff);
+                this.blackTexture.apply();
+
+                return this.blackTexture;
+            }
+            
+            private static translucentTexture: ProceduralTexture2D;
+            static getTranslucentTexture(context: WebGLRenderingContext): Texture {
+                if (this.translucentTexture != null) return this.translucentTexture;
+
+                this.translucentTexture = new ProceduralTexture2D(context, 1, 1);
+                this.translucentTexture.setPixelRgba(0, 0, 0x00000000);
+                this.translucentTexture.apply();
+
+                return this.translucentTexture;
+            }
+            
+            private static errorTexture: ProceduralTexture2D;
+            static getErrorTexture(context: WebGLRenderingContext): Texture {
+                if (this.errorTexture != null) return this.errorTexture;
+
+                const size = 64;
+
+                this.errorTexture = new ProceduralTexture2D(context, size, size);
+
+                for (let y = 0; y < size; ++y) {
+                    for (let x = 0; x < size; ++x) {
+                        const magenta = ((x >> 4) & 1) === ((y >> 4) & 1);
+                        this.errorTexture.setPixelRgba(x, y, magenta ? 0xff00ffff : 0x000000ff);
+                    }
+                }
+
+                this.errorTexture.apply();
+
+                return this.errorTexture;
+            }
+        }
+
         export interface ITextureParameter {
             type: TextureParameterType | string;
             name: TextureParameter | string;

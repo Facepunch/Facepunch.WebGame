@@ -81,6 +81,7 @@ namespace Facepunch {
                     this.modelMatrix = this.addUniform("uModel", UniformMatrix4);
 
                     this.baseTexture = this.addUniform("uBaseTexture", UniformSampler);
+                    this.baseTexture.setDefault(TextureUtils.getErrorTexture(context));
 
                     this.time = this.addUniform("uTime", Uniform4F);
                     this.fogParams = this.addUniform("uFogParams", Uniform4F);
