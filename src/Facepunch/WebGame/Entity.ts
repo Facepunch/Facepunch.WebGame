@@ -120,9 +120,9 @@ namespace Facepunch {
                     roll = valueOrPitch.z;
                 }
 
-                Entity.tempEuler.x = roll * Math.PI / 180;
-                Entity.tempEuler.y = pitch * Math.PI / 180;
-                Entity.tempEuler.z = yaw * Math.PI / 180;
+                Entity.tempEuler.x = roll;
+                Entity.tempEuler.y = pitch;
+                Entity.tempEuler.z = yaw;
 
                 this.rotation.setEuler(Entity.tempEuler);
             }
