@@ -76,6 +76,9 @@ namespace Facepunch {
                     this.includeShaderSource(gl.VERTEX_SHADER, ModelBase.vertSource);
                     this.includeShaderSource(gl.FRAGMENT_SHADER, ModelBase.fragSource);
 
+                    this.addAttribute("aPosition", VertexAttribute.position);
+                    this.addAttribute("aTextureCoord", VertexAttribute.uv);
+
                     this.projectionMatrix = this.addUniform("uProjection", UniformMatrix4);
                     this.viewMatrix = this.addUniform("uView", UniformMatrix4);
                     this.modelMatrix = this.addUniform("uModel", UniformMatrix4);

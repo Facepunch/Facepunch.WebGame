@@ -37,13 +37,15 @@ namespace Facepunch {
 
                     const gl = context;
 
-                    this.setShaderSource(gl.VERTEX_SHADER, ComposeFrame.vertSource);
-                    this.setShaderSource(gl.FRAGMENT_SHADER, ComposeFrame.fragSource);
+                    this.includeShaderSource(gl.VERTEX_SHADER, ComposeFrame.vertSource);
+                    this.includeShaderSource(gl.FRAGMENT_SHADER, ComposeFrame.fragSource);
 
                     this.addAttribute("aScreenPos", VertexAttribute.uv);
 
                     this.frameColor = this.addUniform("uFrameColor", UniformSampler);
                     this.frameDepth = this.addUniform("uFrameDepth", UniformSampler);
+
+                    this.compile();
                 }
 
                 bufferSetup(buf: CommandBuffer, context: RenderContext): void {

@@ -74,7 +74,7 @@ namespace Facepunch {
 
                 if (changedProgram) {
                     if (this.lastHandle.material !== undefined) {
-                        this.lastHandle.material.program.bufferDisableMeshComponents(buf);
+                        this.lastHandle.material.program.bufferDisableAttributes(buf);
                     }
 
                     program.bufferSetup(buf, context);
@@ -161,7 +161,7 @@ namespace Facepunch {
                 }
 
                 if (this.lastHandle.material !== undefined) {
-                    this.lastHandle.material.program.bufferDisableMeshComponents(buf);
+                    this.lastHandle.material.program.bufferDisableAttributes(buf);
                     buf.useProgram(null);
                 }
             }

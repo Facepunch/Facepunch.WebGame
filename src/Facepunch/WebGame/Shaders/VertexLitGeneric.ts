@@ -14,6 +14,7 @@ namespace Facepunch {
 
                     void main()
                     {
+                        Base_main();
                         vColor = aColor;
                     }`;
                     
@@ -44,14 +45,16 @@ namespace Facepunch {
 
                     const gl = context;
 
-                    this.setShaderSource(gl.VERTEX_SHADER, VertexLitGeneric.vertSource);
-                    this.setShaderSource(gl.FRAGMENT_SHADER, VertexLitGeneric.fragSource);
-
                     this.addAttribute("aColor", VertexAttribute.rgb);
+
+                    this.includeShaderSource(gl.VERTEX_SHADER, VertexLitGeneric.vertSource);
+                    this.includeShaderSource(gl.FRAGMENT_SHADER, VertexLitGeneric.fragSource);
                     
                     this.alpha = this.addUniform("uAlpha", Uniform1F);
                     this.alphaTest = this.addUniform("uAlphaTest", Uniform1F);
                     this.translucent = this.addUniform("uTranslucent", Uniform1F);
+                
+                    this.compile();    
                 }
 
                 bufferMaterialProps(buf: CommandBuffer, props: VertexLitGenericMaterialProps): void {

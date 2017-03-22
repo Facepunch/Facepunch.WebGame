@@ -16,9 +16,6 @@ namespace Facepunch {
             private readonly vertIncludes: string[] = [];
             private readonly fragIncludes: string[] = [];
 
-            private fullVertSource = false;
-            private fullFragSource = false;
-
             private nextTextureUnit = 0;
 
             private attribNames: { [name: string]: VertexAttribute } = {};
@@ -96,10 +93,6 @@ namespace Facepunch {
                 return uniform;
             }
 
-            private hasAllSources(): boolean {
-                return this.fullFragSource && this.fullVertSource;
-            }
-
             private static formatSource(source: string): string {
                 const lines = source.replace(/\r\n/g, "\n").split("\n");
 
@@ -144,23 +137,6 @@ namespace Facepunch {
                 }
             }
 
-            protected setShaderSource(type: number, source: string): void {
-                this.includeShaderSource(type, source);
-
-                switch(type) {
-                case WebGLRenderingContext.VERTEX_SHADER:
-                    this.fullVertSource = true;
-                    break;
-                case WebGLRenderingContext.FRAGMENT_SHADER:
-                    this.fullFragSource = true;
-                    break;
-                }
-
-                if (this.hasAllSources()) {
-                    this.compile();
-                }
-            }
-
             private compileShader(type: number, source: string): WebGLShader {
                 const gl = this.context;
 
@@ -189,7 +165,11 @@ namespace Facepunch {
                 this.attribStates[attrib.id] = false;
             }
 
-            private compile(): void {
+            protected compile(): void {
+                if (this.isCompiled()) {
+                    throw new Error("ShaderProgram is already compiled.");
+                }
+
                 const gl = this.context;
 
                 const vertSource = this.vertIncludes.join("\r\n\r\n");
@@ -222,14 +202,14 @@ namespace Facepunch {
             }
 
             bufferEnableAttributes(buf: CommandBuffer, attribs?: VertexAttribute[]) {
-                for (let i = 0; i < this.attribIds.length; ++i) {
+                for (let i = this.attribIds.length - 1; i >= 0; --i) {
                     const id = this.attribIds[i];
                     if (!this.attribStates[id]) continue;
 
                     let found = false;
 
                     if (attribs != null) {
-                        for (let j = 0; j < attribs.length; ++j) {
+                        for (let j = 0, jEnd = attribs.length; j < jEnd; ++j) {
                             if (attribs[j].id == id) {
                                 found = true;
                                 break;
@@ -237,12 +217,15 @@ namespace Facepunch {
                         }
                     }
 
-                    if (!found) buf.disableVertexAttribArray(this.attribLocations[id]);
+                    if (!found) {
+                        this.attribStates[id] = false;
+                        buf.disableVertexAttribArray(this.attribLocations[id]);
+                    }
                 }
 
                 if (attribs == null) return;
 
-                for (let i = 0; i < attribs.length; ++i) {
+                for (let i = 0, iEnd = attribs.length; i < iEnd; ++i) {
                     const attrib = attribs[i];
                     if (this.attribStates[attrib.id] === false) {
                         this.attribStates[attrib.id] = true;
@@ -251,7 +234,7 @@ namespace Facepunch {
                 }
             }
 
-            bufferDisableMeshComponents(buf: CommandBuffer) {
+            bufferDisableAttributes(buf: CommandBuffer) {
                 this.bufferEnableAttributes(buf, null);
             }
 
@@ -265,7 +248,7 @@ namespace Facepunch {
         }
 
         export class BaseMaterialProps {
-            noCull = false;
+            noCull = true;
         }
 
         export abstract class BaseShaderProgram<TMaterialProps extends BaseMaterialProps> extends ShaderProgram {

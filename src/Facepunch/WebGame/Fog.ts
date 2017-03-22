@@ -4,7 +4,7 @@ namespace Facepunch {
             private readonly renderContext: RenderContext;
 
             start = 0;
-            end = 0;
+            end = 8192;
             maxDensity = 0;
             
             readonly color = new Vector3();
