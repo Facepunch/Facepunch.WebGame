@@ -606,6 +606,13 @@ var Facepunch;
             var x = this.x, y = this.y, z = this.z;
             return x * x + y * y + z * z;
         };
+        Vector3.prototype.normalize = function () {
+            var length = this.length();
+            this.x /= length;
+            this.y /= length;
+            this.z /= length;
+            return this;
+        };
         Vector3.prototype.set = function (x, y, z) {
             this.x = x;
             this.y = y;
@@ -616,6 +623,12 @@ var Facepunch;
             this.x += vec.x;
             this.y += vec.y;
             this.z += vec.z;
+            return this;
+        };
+        Vector3.prototype.multiply = function (vec) {
+            this.x *= vec.x;
+            this.y *= vec.y;
+            this.z *= vec.z;
             return this;
         };
         Vector3.prototype.multiplyScalar = function (val) {
@@ -671,6 +684,44 @@ var Facepunch;
             this.z = z || 0;
             this.w = w || 0;
         }
+        Vector4.prototype.length = function () {
+            var x = this.x, y = this.y, z = this.z, w = this.w;
+            return Math.sqrt(x * x + y * y + z * z + w * w);
+        };
+        Vector4.prototype.lengthSq = function () {
+            var x = this.x, y = this.y, z = this.z, w = this.w;
+            return x * x + y * y + z * z + w * w;
+        };
+        Vector4.prototype.lengthXyz = function () {
+            var x = this.x, y = this.y, z = this.z;
+            return Math.sqrt(x * x + y * y + z * z);
+        };
+        Vector4.prototype.lengthSqXyz = function () {
+            var x = this.x, y = this.y, z = this.z;
+            return x * x + y * y + z * z;
+        };
+        Vector4.prototype.normalize = function () {
+            var length = this.length();
+            this.x /= length;
+            this.y /= length;
+            this.z /= length;
+            this.w /= length;
+            return this;
+        };
+        Vector4.prototype.normalizeXyz = function () {
+            var length = this.lengthXyz();
+            this.x /= length;
+            this.y /= length;
+            this.z /= length;
+            return this;
+        };
+        Vector4.prototype.set = function (x, y, z, w) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.w = w;
+            return this;
+        };
         Vector4.prototype.applyMatrix4 = function (mat) {
             var x = this.x, y = this.y, z = this.z, w = this.w;
             var m = mat.elements;
@@ -2514,31 +2565,114 @@ var Facepunch;
                 this.context = game.context;
                 this.game = game;
             }
+            MeshManager.decompress = function (compressed) {
+                var attribs = [];
+                for (var i = 0, iEnd = compressed.attributes.length; i < iEnd; ++i) {
+                    var attrib = compressed.attributes[i];
+                    attribs.push(typeof attrib === "string" ? WebGame.VertexAttribute[attrib] : attrib);
+                }
+                return {
+                    attributes: attribs,
+                    elements: compressed.elements,
+                    vertices: Facepunch.Utils.decompress(compressed.vertices),
+                    indices: Facepunch.Utils.decompress(compressed.indices)
+                };
+            };
+            MeshManager.clone = function (data) {
+                return {
+                    attributes: data.attributes,
+                    elements: data.elements,
+                    vertices: data.vertices.slice(),
+                    indices: data.indices
+                };
+            };
+            MeshManager.getAttributeOffset = function (attribs, attrib) {
+                var length = 0;
+                for (var i = 0, iEnd = attribs.length; i < iEnd; ++i) {
+                    if (attrib.id === attribs[i].id)
+                        return length;
+                    length += attribs[i].size;
+                }
+                return undefined;
+            };
+            MeshManager.getVertexLength = function (attribs) {
+                var length = 0;
+                for (var i = 0, iEnd = attribs.length; i < iEnd; ++i) {
+                    length += attribs[i].size;
+                }
+                return length;
+            };
+            MeshManager.transform3F = function (data, attrib, action) {
+                if (attrib.size !== 3)
+                    throw new Error("Expected the given attribute to be of size 3.");
+                var attribOffset = MeshManager.getAttributeOffset(data.attributes, attrib);
+                if (attribOffset === undefined)
+                    return;
+                var verts = data.vertices;
+                var length = data.vertices.length;
+                var vertLength = MeshManager.getVertexLength(data.attributes);
+                var normalized = attrib.normalized;
+                var vec = new Facepunch.Vector3();
+                for (var i = attribOffset; i < length; i += vertLength) {
+                    vec.set(verts[i], verts[i + 1], verts[i + 2]);
+                    action(vec);
+                    if (normalized)
+                        vec.normalize();
+                    verts[i] = vec.x;
+                    verts[i + 1] = vec.y;
+                    verts[i + 2] = vec.z;
+                }
+            };
+            MeshManager.transform4F = function (data, attrib, action, defaultW) {
+                if (defaultW === void 0) { defaultW = 1; }
+                if (attrib.size !== 3 && attrib.size !== 4)
+                    throw new Error("Expected the given attribute to be of size 3 or 4.");
+                var attribOffset = MeshManager.getAttributeOffset(data.attributes, attrib);
+                if (attribOffset === undefined)
+                    return;
+                var verts = data.vertices;
+                var length = data.vertices.length;
+                var vertLength = MeshManager.getVertexLength(data.attributes);
+                var normalized = attrib.normalized;
+                var vec = new Facepunch.Vector4();
+                if (attrib.size === 3) {
+                    for (var i = attribOffset; i < length; i += vertLength) {
+                        vec.set(verts[i], verts[i + 1], verts[i + 2], defaultW);
+                        action(vec);
+                        if (normalized)
+                            vec.normalizeXyz();
+                        verts[i] = vec.x;
+                        verts[i + 1] = vec.y;
+                        verts[i + 2] = vec.z;
+                    }
+                }
+                else if (attrib.size === 4) {
+                    for (var i = attribOffset; i < length; i += vertLength) {
+                        vec.set(verts[i], verts[i + 1], verts[i + 2], verts[i + 3]);
+                        action(vec);
+                        if (normalized)
+                            vec.normalize();
+                        verts[i] = vec.x;
+                        verts[i + 1] = vec.y;
+                        verts[i + 2] = vec.z;
+                        verts[i + 3] = vec.w;
+                    }
+                }
+            };
             MeshManager.prototype.addMeshData = function (data, getMaterial, target) {
                 if (target == null) {
                     target = [];
                 }
-                var attribs = [];
-                for (var i = 0, iEnd = data.attributes.length; i < iEnd; ++i) {
-                    var attrib = data.attributes[i];
-                    attribs.push(typeof attrib === "string" ? WebGame.VertexAttribute[attrib] : attrib);
-                }
-                var uncompressed = {
-                    attributes: attribs,
-                    elements: data.elements,
-                    vertices: Facepunch.Utils.decompress(data.vertices),
-                    indices: Facepunch.Utils.decompress(data.indices)
-                };
                 for (var i = 0, iEnd = this.groups.length; i < iEnd; ++i) {
                     var group = this.groups[i];
-                    if (group.canAddMeshData(uncompressed)) {
-                        group.addMeshData(uncompressed, getMaterial, target);
+                    if (group.canAddMeshData(data)) {
+                        group.addMeshData(data, getMaterial, target);
                         return target;
                     }
                 }
-                var newGroup = new WebGame.MeshGroup(this.context, attribs);
+                var newGroup = new WebGame.MeshGroup(this.context, data.attributes);
                 this.groups.push(newGroup);
-                newGroup.addMeshData(uncompressed, getMaterial, target);
+                newGroup.addMeshData(data, getMaterial, target);
                 return target;
             };
             MeshManager.prototype.getComposeFrameMeshHandle = function () {
@@ -2576,8 +2710,10 @@ var Facepunch;
     var WebGame;
     (function (WebGame) {
         var Model = (function () {
-            function Model() {
+            function Model(meshManager, materialLoader) {
                 this.onLoadCallbacks = [];
+                this.meshManager = meshManager;
+                this.materialLoader = materialLoader;
             }
             Model.prototype.addOnLoadCallback = function (callback) {
                 if (this.isLoaded()) {
@@ -2602,15 +2738,23 @@ var Facepunch;
         var ModelLoadable = (function (_super) {
             __extends(ModelLoadable, _super);
             function ModelLoadable(game, url) {
-                _super.call(this);
-                this.game = game;
+                _super.call(this, game.meshes, game.materialLoader);
                 this.url = url;
             }
             ModelLoadable.prototype.isLoaded = function () {
-                return this.handles != null;
+                return this.meshData != null;
+            };
+            ModelLoadable.prototype.getMaterial = function (index) {
+                return this.materials[index];
+            };
+            ModelLoadable.prototype.getMeshData = function () {
+                return this.meshData;
             };
             ModelLoadable.prototype.getMeshHandles = function () {
-                return this.handles;
+                var _this = this;
+                if (this.handles != null)
+                    return this.handles;
+                return this.handles = this.meshManager.addMeshData(this.meshData, function (i) { return _this.getMaterial(i); });
             };
             ModelLoadable.prototype.loadNext = function (callback) {
                 var _this = this;
@@ -2622,9 +2766,10 @@ var Facepunch;
                     var materials = [];
                     for (var i = 0, iEnd = info.materials.length; i < iEnd; ++i) {
                         var matUrl = Facepunch.Http.getAbsUrl(info.materials[i], _this.url);
-                        materials[i] = _this.game.materialLoader.load(matUrl);
+                        materials[i] = _this.materialLoader.load(matUrl);
                     }
-                    _this.handles = _this.game.meshes.addMeshData(info.meshData, function (i) { return materials[i]; });
+                    _this.materials = materials;
+                    _this.meshData = WebGame.MeshManager.decompress(info.meshData);
                     _this.dispatchOnLoadCallbacks();
                     callback(false);
                 }, function (error) {
@@ -3165,7 +3310,7 @@ var Facepunch;
                     this.alphaTest.bufferValue(buf, props.alphaTest ? 1 : 0);
                     this.translucent.bufferValue(buf, props.translucent ? 1 : 0);
                 };
-                VertexLitGeneric.vertSource = "\n                    attribute vec3 aColor;\n\n                    varying vec3 vColor;\n\n                    void main()\n                    {\n                        Base_main();\n                        vColor = vec3(1.0, 1.0, 1.0);\n                        //vColor = aColor * (1.0 / 255.0);\n                    }";
+                VertexLitGeneric.vertSource = "\n                    attribute vec3 aColor;\n\n                    varying vec3 vColor;\n\n                    void main()\n                    {\n                        Base_main();\n                        vColor = aColor * (1.0 / 255.0);\n                    }";
                 VertexLitGeneric.fragSource = "\n                    varying vec3 vColor;\n\n                    uniform float uAlpha;\n\n                    uniform float uAlphaTest;\n                    uniform float uTranslucent;\n\n                    void main()\n                    {\n                        vec4 texSample = texture2D(uBaseTexture, vTextureCoord);\n                        if (texSample.a < uAlphaTest - 0.5) discard;\n\n                        vec3 color = ApplyFog(texSample.rgb * vColor);\n\n                        gl_FragColor = vec4(color, mix(1.0, texSample.a, uTranslucent) * uAlpha);\n                    }";
                 return VertexLitGeneric;
             }(Shaders.ModelBase));
@@ -3183,8 +3328,14 @@ var Facepunch;
                 _super.call(this);
                 this.drawable = new WebGame.DrawListItem();
                 this.drawable.entity = this;
-                this.drawable.isStatic = false;
+                this.drawable.isStatic = true;
             }
+            StaticProp.prototype.setColorTint = function (color) {
+                if (this.tint != null)
+                    this.tint.copy(color);
+                else
+                    this.tint = new Facepunch.Vector3().copy(color);
+            };
             StaticProp.prototype.setModel = function (model) {
                 var _this = this;
                 if (this.model === model)
@@ -3197,10 +3348,18 @@ var Facepunch;
                 model.addOnLoadCallback(function (mdl) { return _this.onModelLoaded(mdl); });
             };
             StaticProp.prototype.onModelLoaded = function (model) {
+                var _this = this;
                 if (model !== this.model)
                     return;
                 this.drawable.clearMeshHandles();
-                this.drawable.addMeshHandles(model.getMeshHandles());
+                var meshData = WebGame.MeshManager.clone(model.getMeshData());
+                var transform = this.getMatrix();
+                WebGame.MeshManager.transform4F(meshData, WebGame.VertexAttribute.position, function (pos) { return pos.applyMatrix4(transform); }, 1);
+                WebGame.MeshManager.transform4F(meshData, WebGame.VertexAttribute.normal, function (norm) { return norm.applyMatrix4(transform); }, 0);
+                if (this.tint != null) {
+                    WebGame.MeshManager.transform3F(meshData, WebGame.VertexAttribute.rgb, function (rgb) { return rgb.multiply(_this.tint); });
+                }
+                this.drawable.addMeshHandles(model.meshManager.addMeshData(meshData, function (index) { return model.getMaterial(index); }));
             };
             StaticProp.prototype.getModel = function () {
                 return this.model;
@@ -3562,7 +3721,7 @@ var Facepunch;
                 this.filter = Facepunch.WebGl.decodeConst(params.filter, TextureFilter.Linear);
                 this.mipmap = params.mipmap === undefined ? false : params.mipmap;
                 gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, this.filter);
-                gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, TextureMagFilter.Nearest);
+                gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, this.filter);
             };
             TextureLoadable.prototype.getOrCreateHandle = function () {
                 if (this.handle !== undefined)

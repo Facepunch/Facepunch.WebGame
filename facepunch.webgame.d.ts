@@ -68,8 +68,10 @@ declare namespace Facepunch {
         constructor(x?: number, y?: number, z?: number);
         length(): number;
         lengthSq(): number;
+        normalize(): this;
         set(x: number, y: number, z: number): this;
         add(vec: IVector3): this;
+        multiply(vec: IVector3): this;
         multiplyScalar(val: number): this;
         dot(vec: IVector3): number;
         copy(vec: IVector3): this;
@@ -82,6 +84,13 @@ declare namespace Facepunch {
         z: number;
         w: number;
         constructor(x?: number, y?: number, z?: number, w?: number);
+        length(): number;
+        lengthSq(): number;
+        lengthXyz(): number;
+        lengthSqXyz(): number;
+        normalize(): this;
+        normalizeXyz(): this;
+        set(x: number, y: number, z: number, w: number): this;
         applyMatrix4(mat: Matrix4): this;
     }
     class Quaternion {
@@ -724,7 +733,13 @@ declare namespace Facepunch {
             private readonly game;
             private readonly groups;
             constructor(game: Game);
-            addMeshData(data: ICompressedMeshData | IMeshData, getMaterial?: (materialIndex: number) => Material, target?: MeshHandle[]): MeshHandle[];
+            static decompress(compressed: ICompressedMeshData): IMeshData;
+            static clone(data: IMeshData): IMeshData;
+            static getAttributeOffset(attribs: VertexAttribute[], attrib: VertexAttribute): number;
+            static getVertexLength(attribs: VertexAttribute[]): number;
+            static transform3F(data: IMeshData, attrib: VertexAttribute, action: (vec: Vector3) => void): void;
+            static transform4F(data: IMeshData, attrib: VertexAttribute, action: (vec: Vector4) => void, defaultW?: number): void;
+            addMeshData(data: IMeshData, getMaterial?: (materialIndex: number) => Material, target?: MeshHandle[]): MeshHandle[];
             private composeFrameHandle;
             getComposeFrameMeshHandle(): MeshHandle;
             dispose(): void;
@@ -739,17 +754,25 @@ declare namespace Facepunch {
         }
         abstract class Model {
             private readonly onLoadCallbacks;
+            readonly meshManager: MeshManager;
+            readonly materialLoader: MaterialLoader;
+            constructor(meshManager: MeshManager, materialLoader: MaterialLoader);
             abstract isLoaded(): boolean;
+            abstract getMeshData(): IMeshData;
+            abstract getMaterial(index: number): Material;
             abstract getMeshHandles(): MeshHandle[];
             addOnLoadCallback(callback: (model: Model) => void): void;
             protected dispatchOnLoadCallbacks(): void;
         }
         class ModelLoadable extends Model implements ILoadable {
-            private readonly game;
             private readonly url;
+            private materials;
+            private meshData;
             private handles;
             constructor(game: Game, url: string);
             isLoaded(): boolean;
+            getMaterial(index: number): Material;
+            getMeshData(): IMeshData;
             getMeshHandles(): MeshHandle[];
             loadNext(callback: (requeue: boolean) => void): void;
         }
@@ -930,7 +953,9 @@ declare namespace Facepunch {
         class StaticProp extends Entity implements IDrawListItem {
             private readonly drawable;
             private model;
+            private tint;
             constructor();
+            setColorTint(color: IVector3): void;
             setModel(model: Model): void;
             private onModelLoaded(model);
             getModel(): Model;

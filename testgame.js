@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-/// <reference path="facepunch.webgame.d.ts"/>
+/// <reference path="../build/facepunch.webgame.d.ts"/>
 var WebGame = Facepunch.WebGame;
 var TestGame = (function (_super) {
     __extends(TestGame, _super);
@@ -20,16 +20,25 @@ var TestGame = (function (_super) {
         this.canLockPointer = true;
         this.mainCamera = new WebGame.PerspectiveCamera(75, this.getWidth() / this.getHeight(), 1, 8192);
         this.mainRenderContext = new WebGame.RenderContext(this);
+        this.mainRenderContext.fog.maxDensity = 0.825;
+        this.mainRenderContext.fog.start = 64;
+        this.mainRenderContext.fog.end = 2048;
+        this.mainRenderContext.fog.color.set(0.675, 0.75, 0.5);
         this.mainCamera.setPosition(0, 128, 64);
         this.testObjects = [];
         var model = this.modelLoader.load("models/military_case_02.model.json");
+        var color = new Facepunch.Vector3(1, 1, 1);
         for (var x = -5; x < 5; ++x) {
             for (var y = -5; y < 5; ++y) {
                 var obj = new WebGame.StaticProp();
                 var angle = Math.floor(Math.random() * 4) * Math.PI * 0.5;
+                color.x = 0.75 + Math.random() * 0.25;
+                color.y = 0.75 + Math.random() * 0.25;
+                color.z = 0.75 + Math.random() * 0.25;
                 obj.setPosition(x * 128, y * 128, 0);
                 obj.setAngles(0, angle + (Math.random() - 0.5) * Math.PI / 16, 0);
                 obj.setScale(Math.random() * 0.25 + 1.25);
+                obj.setColorTint(color);
                 obj.setModel(model);
                 this.testObjects.push(obj);
             }
