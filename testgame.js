@@ -3,7 +3,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-/// <reference path="../build/facepunch.webgame.d.ts"/>
+/// <reference path="facepunch.webgame.d.ts"/>
 var WebGame = Facepunch.WebGame;
 var TestGame = (function (_super) {
     __extends(TestGame, _super);
@@ -22,7 +22,7 @@ var TestGame = (function (_super) {
         this.mainRenderContext = new WebGame.RenderContext(this);
         this.mainCamera.setPosition(0, 128, 64);
         this.testObjects = [];
-        var model = this.modelLoader.load("/models/military_case_02.model.json");
+        var model = this.modelLoader.load("models/military_case_02.model.json");
         for (var x = -5; x < 5; ++x) {
             for (var y = -5; y < 5; ++y) {
                 var obj = new WebGame.StaticProp();

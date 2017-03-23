@@ -1,4 +1,4 @@
-/// <reference path="../build/facepunch.webgame.d.ts"/>
+/// <reference path="facepunch.webgame.d.ts"/>
 
 import WebGame = Facepunch.WebGame;
 
@@ -22,7 +22,7 @@ class TestGame extends WebGame.Game {
 
         this.testObjects = [];
 
-        const model = this.modelLoader.load("/models/military_case_02.model.json");
+        const model = this.modelLoader.load("models/military_case_02.model.json");
 
         for (let x = -5; x < 5; ++x) {
             for (let y = -5; y < 5; ++y) {
