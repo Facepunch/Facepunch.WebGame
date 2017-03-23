@@ -400,10 +400,10 @@ namespace Facepunch {
         }
 
         export interface ITextureParameters {
-            wrapS: TextureWrapMode | "CLAMP_TO_EDGE" | "REPEAT" | "MIRRORED_REPEAT";
-            wrapT: TextureWrapMode | "CLAMP_TO_EDGE" | "REPEAT" | "MIRRORED_REPEAT";
-            filter: TextureFilter | "NEAREST" | "LINEAR";
-            mipmap: boolean;
+            wrapS?: TextureWrapMode | "CLAMP_TO_EDGE" | "REPEAT" | "MIRRORED_REPEAT";
+            wrapT?: TextureWrapMode | "CLAMP_TO_EDGE" | "REPEAT" | "MIRRORED_REPEAT";
+            filter?: TextureFilter | "NEAREST" | "LINEAR";
+            mipmap?: boolean;
         }
 
         export interface IColor {
@@ -422,8 +422,8 @@ namespace Facepunch {
 
         export interface ITextureInfo {
             target: TextureTarget | string,
-            width: number;
-            height: number;
+            width?: number;
+            height?: number;
             params: ITextureParameters,
             elements: ITextureElement[]
         }
@@ -446,6 +446,22 @@ namespace Facepunch {
 
                 this.context = context;
                 this.url = url;
+
+                if (/\.(png|jpe?g)$/i.test(this.url)) {
+                    this.onLoadInfo({
+                        target: TextureTarget.Texture2D,
+                        params: {
+                            filter: TextureFilter.Linear,
+                            mipmap: false
+                        },
+                        elements: [
+                            {
+                                level: 0,
+                                url: url
+                            }
+                        ]
+                    });
+                }
 
                 this.toString = () => `url(${url})`;
             }
@@ -577,18 +593,21 @@ namespace Facepunch {
                 return success;
             }
 
+            private onLoadInfo(info: ITextureInfo): void {
+                this.info = info;
+                this.target = WebGl.decodeConst(info.target);
+
+                this.getOrCreateHandle();
+
+                while (this.canLoadImmediately(this.nextElement)) {
+                    this.loadElement(info.elements[this.nextElement++]);
+                }
+            }
+
             loadNext(callback: (requeue: boolean) => void): void {
                 if (this.info == null) {
                     Http.getJson<ITextureInfo>(this.url, info => {
-                        this.info = info;
-                        this.target = WebGl.decodeConst(info.target);
-
-                        const handle = this.getOrCreateHandle();
-
-                        while (this.canLoadImmediately(this.nextElement)) {
-                            this.loadElement(info.elements[this.nextElement++]);
-                        }
-
+                        this.onLoadInfo(info);
                         callback(info.elements != null && this.nextElement < info.elements.length);
                     }, error => {
                         console.error(`Failed to load texture ${this.url}: ${error}`);
