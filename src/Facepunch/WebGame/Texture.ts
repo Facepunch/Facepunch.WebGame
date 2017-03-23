@@ -476,7 +476,7 @@ namespace Facepunch {
                 this.mipmap = params.mipmap === undefined ? false : params.mipmap;
 
                 gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, this.filter);
-                gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, TextureMagFilter.Nearest);
+                gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, this.filter);
             }
 
             private getOrCreateHandle(): WebGLTexture {

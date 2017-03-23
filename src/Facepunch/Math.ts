@@ -72,6 +72,14 @@ namespace Facepunch {
             return x * x + y * y + z * z;
         }
 
+        normalize(): this {
+            const length = this.length();
+            this.x /= length;
+            this.y /= length;
+            this.z /= length;
+            return this;
+        }
+
         set(x: number, y: number, z: number): this {
             this.x = x;
             this.y = y;
@@ -83,6 +91,14 @@ namespace Facepunch {
             this.x += vec.x;
             this.y += vec.y;
             this.z += vec.z;
+            return this;
+        }
+
+        multiply(vec: IVector3): this
+        {
+            this.x *= vec.x;
+            this.y *= vec.y;
+            this.z *= vec.z;
             return this;
         }
 

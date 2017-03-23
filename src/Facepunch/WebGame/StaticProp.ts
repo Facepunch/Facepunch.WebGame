@@ -5,12 +5,18 @@ namespace Facepunch {
             private readonly drawable = new DrawListItem();
 
             private model: Model;
+            private tint: Vector3;
 
             constructor() {
                 super();
 
                 this.drawable.entity = this;
                 this.drawable.isStatic = true;
+            }
+
+            setColorTint(color: IVector3): void {
+                if (this.tint != null) this.tint.copy(color);
+                else this.tint = new Vector3().copy(color);
             }
 
             setModel(model: Model): void {
@@ -35,6 +41,10 @@ namespace Facepunch {
 
                 MeshManager.transform4F(meshData, VertexAttribute.position, pos => pos.applyMatrix4(transform), 1);
                 MeshManager.transform4F(meshData, VertexAttribute.normal, norm => norm.applyMatrix4(transform), 0);
+
+                if (this.tint != null) {
+                    MeshManager.transform3F(meshData, VertexAttribute.rgb, rgb => rgb.multiply(this.tint));
+                }
 
                 this.drawable.addMeshHandles(model.meshManager.addMeshData(meshData, index => model.getMaterial(index)));
             }

@@ -17,12 +17,17 @@ class TestGame extends WebGame.Game {
 
         this.mainCamera = new WebGame.PerspectiveCamera(75, this.getWidth() / this.getHeight(), 1, 8192);
         this.mainRenderContext = new WebGame.RenderContext(this);
+        this.mainRenderContext.fog.maxDensity = 0.825;
+        this.mainRenderContext.fog.start = 64;
+        this.mainRenderContext.fog.end = 2048;
+        this.mainRenderContext.fog.color.set(0.675, 0.75, 0.5);
 
         this.mainCamera.setPosition(0, 128, 64);
 
         this.testObjects = [];
 
-        const model = this.modelLoader.load("/models/military_case_02.model.json");
+        const model = this.modelLoader.load("models/military_case_02.model.json");
+        const color = new Facepunch.Vector3(1, 1, 1);
 
         for (let x = -5; x < 5; ++x) {
             for (let y = -5; y < 5; ++y) {
@@ -30,9 +35,14 @@ class TestGame extends WebGame.Game {
 
                 const angle = Math.floor(Math.random() * 4) * Math.PI * 0.5;
 
+                color.x = 0.75 + Math.random() * 0.25;
+                color.y = 0.75 + Math.random() * 0.25;
+                color.z = 0.75 + Math.random() * 0.25;
+
                 obj.setPosition(x * 128, y * 128, 0);
                 obj.setAngles(0, angle + (Math.random() - 0.5) * Math.PI / 16, 0);
                 obj.setScale(Math.random() * 0.25 + 1.25);
+                obj.setColorTint(color);
                 obj.setModel(model);
 
                 this.testObjects.push(obj);

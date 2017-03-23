@@ -52,6 +52,28 @@ namespace Facepunch {
                 return length;
             }
 
+            static transform3F(data: IMeshData, attrib: VertexAttribute, action: (vec: Vector3) => void): void {
+                if (attrib.size !== 3) throw new Error("Expected the given attribute to be of size 3.");
+
+                const attribOffset = MeshManager.getAttributeOffset(data.attributes, attrib);
+                if (attribOffset === undefined) return;
+
+                const verts = data.vertices;
+                const length = data.vertices.length;
+                const vertLength = MeshManager.getVertexLength(data.attributes);
+                const normalized = attrib.normalized;
+
+                const vec = new Vector3();
+                for (let i = attribOffset; i < length; i += vertLength) {
+                    vec.set(verts[i], verts[i + 1], verts[i + 2]);
+                    action(vec);
+                    if (normalized) vec.normalize();
+                    verts[i] = vec.x;
+                    verts[i + 1] = vec.y;
+                    verts[i + 2] = vec.z;
+                }
+            }
+
             static transform4F(data: IMeshData, attrib: VertexAttribute, action: (vec: Vector4) => void, defaultW: number = 1): void {
                 if (attrib.size !== 3 && attrib.size !== 4) throw new Error("Expected the given attribute to be of size 3 or 4.");
 

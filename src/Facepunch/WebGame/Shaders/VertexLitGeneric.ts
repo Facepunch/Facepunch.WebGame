@@ -15,8 +15,7 @@ namespace Facepunch {
                     void main()
                     {
                         Base_main();
-                        vColor = vec3(1.0, 1.0, 1.0);
-                        //vColor = aColor * (1.0 / 255.0);
+                        vColor = aColor * (1.0 / 255.0);
                     }`;
                     
                 static readonly fragSource = `
