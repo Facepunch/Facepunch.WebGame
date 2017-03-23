@@ -300,7 +300,10 @@ namespace Facepunch {
 
                 for (let row = y, rowEnd = y + height; row < rowEnd; ++row, startIndex += rowLength) {
                     for (let index = startIndex, indexEnd = index + scanLength; index < indexEnd; index += channels) {
-                        imageValues[index] = values[i];
+                        imageValues[index] = values[i++];
+                        imageValues[index + 1] = values[i++];
+                        imageValues[index + 2] = values[i++];
+                        imageValues[index + 3] = values[i++];
                     }
                 }
             }
