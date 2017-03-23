@@ -1063,7 +1063,7 @@ var Facepunch;
             if (Http.isAbsUrl(url))
                 return url;
             if (!Http.isAbsUrl(relativeTo)) {
-                throw new Error("Expected relativeTo to be an absolute URL.");
+                relativeTo = window.location.pathname;
             }
             if (relativeTo.charAt(relativeTo.length - 1) === "/") {
                 return "" + relativeTo + url;
