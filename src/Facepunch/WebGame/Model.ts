@@ -8,7 +8,17 @@ namespace Facepunch {
         export abstract class Model {
             private readonly onLoadCallbacks: ((model: Model) => void)[] = [];
 
+            readonly meshManager: MeshManager;
+            readonly materialLoader: MaterialLoader;
+
+            constructor(meshManager: MeshManager, materialLoader: MaterialLoader) {
+                this.meshManager = meshManager;
+                this.materialLoader = materialLoader;
+            }
+
             abstract isLoaded(): boolean;
+            abstract getMeshData(): IMeshData;
+            abstract getMaterial(index: number): Material;
             abstract getMeshHandles(): MeshHandle[];
 
             addOnLoadCallback(callback: (model: Model) => void): void {
@@ -33,24 +43,33 @@ namespace Facepunch {
         }
 
         export class ModelLoadable extends Model implements ILoadable {
-            private readonly game: Game;
             private readonly url: string;
 
+            private materials: Material[];
+            private meshData: IMeshData;
             private handles: MeshHandle[];
 
             constructor(game: Game, url: string) {
-                super();
+                super(game.meshes, game.materialLoader);
 
-                this.game = game;
                 this.url = url;
             }
 
             isLoaded(): boolean {
-                return this.handles != null;
+                return this.meshData != null;
+            }
+
+            getMaterial(index: number): Material {
+                return this.materials[index];
+            }
+
+            getMeshData(): IMeshData {
+                return this.meshData;
             }
 
             getMeshHandles(): MeshHandle[] {
-                return this.handles;
+                if (this.handles != null) return this.handles;
+                return this.handles = this.meshManager.addMeshData(this.meshData, i => this.getMaterial(i));
             }
             
             loadNext(callback: (requeue: boolean) => void): void {
@@ -64,10 +83,11 @@ namespace Facepunch {
 
                     for (let i = 0, iEnd = info.materials.length; i < iEnd; ++i) {
                         const matUrl = Http.getAbsUrl(info.materials[i], this.url);
-                        materials[i] = this.game.materialLoader.load(matUrl);
+                        materials[i] = this.materialLoader.load(matUrl);
                     }
 
-                    this.handles = this.game.meshes.addMeshData(info.meshData, i => materials[i]);
+                    this.materials = materials;
+                    this.meshData = MeshManager.decompress(info.meshData);
                     this.dispatchOnLoadCallbacks();
 
                     callback(false);

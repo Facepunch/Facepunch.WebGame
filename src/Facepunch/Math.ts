@@ -151,6 +151,51 @@ namespace Facepunch {
             this.w = w || 0;
         }
 
+        length(): number {
+            const x = this.x, y = this.y, z = this.z, w = this.w;
+            return Math.sqrt(x * x + y * y + z * z + w * w);
+        }
+
+        lengthSq(): number {
+            const x = this.x, y = this.y, z = this.z, w = this.w;
+            return x * x + y * y + z * z + w * w;
+        }
+
+        lengthXyz(): number {
+            const x = this.x, y = this.y, z = this.z;
+            return Math.sqrt(x * x + y * y + z * z);
+        }
+
+        lengthSqXyz(): number {
+            const x = this.x, y = this.y, z = this.z;
+            return x * x + y * y + z * z;
+        }
+
+        normalize(): this {
+            const length = this.length();
+            this.x /= length;
+            this.y /= length;
+            this.z /= length;
+            this.w /= length;
+            return this;
+        }
+
+        normalizeXyz(): this {
+            const length = this.lengthXyz();
+            this.x /= length;
+            this.y /= length;
+            this.z /= length;
+            return this;
+        }
+
+        set(x: number, y: number, z: number, w: number): this {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.w = w;
+            return this;
+        }
+
         applyMatrix4(mat: Matrix4): this {
             const x = this.x, y = this.y, z = this.z, w = this.w;
             const m = mat.elements;

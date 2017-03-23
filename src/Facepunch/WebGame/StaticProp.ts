@@ -10,7 +10,7 @@ namespace Facepunch {
                 super();
 
                 this.drawable.entity = this;
-                this.drawable.isStatic = false;
+                this.drawable.isStatic = true;
             }
 
             setModel(model: Model): void {
@@ -29,7 +29,14 @@ namespace Facepunch {
                 if (model !== this.model) return;
 
                 this.drawable.clearMeshHandles();
-                this.drawable.addMeshHandles(model.getMeshHandles());
+
+                const meshData = MeshManager.clone(model.getMeshData());
+                const transform = this.getMatrix();
+
+                MeshManager.transform4F(meshData, VertexAttribute.position, pos => pos.applyMatrix4(transform), 1);
+                MeshManager.transform4F(meshData, VertexAttribute.normal, norm => norm.applyMatrix4(transform), 0);
+
+                this.drawable.addMeshHandles(model.meshManager.addMeshData(meshData, index => model.getMaterial(index)));
             }
             
             getModel(): Model {
