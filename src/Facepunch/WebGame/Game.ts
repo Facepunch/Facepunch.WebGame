@@ -84,6 +84,11 @@ namespace Facepunch {
                     this.heldKeys[evnt.which] = false;
                     this.onKeyUp(evnt.which as Key);
                 });
+
+                window.addEventListener("resize", evnt => {
+                    this.onResize();
+                    this.onRenderFrame(0);
+                });
                 
                 this.animateCallback = (time: number) => {
                     const deltaTime = time - this.lastAnimateCallback;
