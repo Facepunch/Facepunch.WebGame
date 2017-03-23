@@ -1,6 +1,9 @@
 namespace Facepunch {
     export namespace WebGame {
         export class RenderContext implements ICommandBufferParameterProvider {
+            static readonly opaqueColorParam = new CommandBufferParameter(UniformType.Texture);
+            static readonly opaqueDepthParam = new CommandBufferParameter(UniformType.Texture);
+
             readonly game: Game;
             readonly fog: Fog;
             
@@ -56,8 +59,8 @@ namespace Facepunch {
                 this.game.populateCommandBufferParameters(buf);
                 this.fog.populateCommandBufferParameters(buf);
 
-                buf.setParameter(CommandBufferParameter.RefractColorMap, this.getOpaqueColorTexture());
-                buf.setParameter(CommandBufferParameter.RefractDepthMap, this.getOpaqueDepthTexture());
+                buf.setParameter(RenderContext.opaqueColorParam, this.getOpaqueColorTexture());
+                buf.setParameter(RenderContext.opaqueDepthParam, this.getOpaqueDepthTexture());
             }
 
             private setupFrameBuffers(): void {

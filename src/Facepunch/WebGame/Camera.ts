@@ -1,8 +1,16 @@
 /// <reference path="Entity.ts"/>
+/// <reference path="CommandBuffer.ts"/>
 
 namespace Facepunch {
     export namespace WebGame {
         export abstract class Camera extends Entity implements ICommandBufferParameterProvider {
+            static readonly cameraPosParam = new CommandBufferParameter(UniformType.Float3);
+            static readonly clipInfoParam = new CommandBufferParameter(UniformType.Float4);
+            static readonly projectionMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
+            static readonly inverseProjectionMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
+            static readonly viewMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
+            static readonly inverseViewMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
+
             private projectionInvalid = true;
             private projectionMatrix = new Matrix4();
             private inverseProjectionInvalid = true;
@@ -56,13 +64,13 @@ namespace Facepunch {
                 this.clipParams[1] = this.getFar();
                 this.clipParams[2] = 1 / (this.clipParams[1] - this.clipParams[0]);
 
-                buf.setParameter(CommandBufferParameter.CameraPos, this.cameraPosParams);
-                buf.setParameter(CommandBufferParameter.ClipParams, this.clipParams);
+                buf.setParameter(Camera.cameraPosParam, this.cameraPosParams);
+                buf.setParameter(Camera.clipInfoParam, this.clipParams);
 
-                buf.setParameter(CommandBufferParameter.ProjectionMatrix, this.getProjectionMatrix().elements);
-                buf.setParameter(CommandBufferParameter.InverseProjectionMatrix, this.getInverseProjectionMatrix().elements);
-                buf.setParameter(CommandBufferParameter.ViewMatrix, this.getInverseMatrix().elements);
-                buf.setParameter(CommandBufferParameter.InverseViewMatrix, this.getMatrix().elements);
+                buf.setParameter(Camera.projectionMatrixParam, this.getProjectionMatrix().elements);
+                buf.setParameter(Camera.inverseProjectionMatrixParam, this.getInverseProjectionMatrix().elements);
+                buf.setParameter(Camera.viewMatrixParam, this.getInverseMatrix().elements);
+                buf.setParameter(Camera.inverseViewMatrixParam, this.getMatrix().elements);
             }
         }
 

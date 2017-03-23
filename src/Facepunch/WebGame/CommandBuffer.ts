@@ -36,19 +36,23 @@ namespace Facepunch {
             w?: number;
         }
 
-        export enum CommandBufferParameter {
-            ProjectionMatrix,
-            InverseProjectionMatrix,
-            ViewMatrix,
-            InverseViewMatrix,
-            CameraPos,
-            ScreenParams,
-            ClipParams,
-            TimeParams,
-            FogParams,
-            FogColor,
-            RefractColorMap,
-            RefractDepthMap
+        export enum UniformType {
+            Float,
+            Float2,
+            Float3,
+            Float4,
+            Matrix4,
+            Texture
+        }
+
+        export class CommandBufferParameter {
+            private static nextId = 1;
+            readonly id = CommandBufferParameter.nextId++;
+            readonly type: UniformType;
+
+            constructor(type: UniformType) {
+                this.type = type;
+            }
         }
 
         export interface ICommandBufferParameterProvider {
@@ -110,7 +114,7 @@ namespace Facepunch {
                     }
                     
                     if (command.parameter !== undefined && command.parameters !== undefined) {
-                        const value = command.parameters[command.parameter];
+                        const value = command.parameters[command.parameter.id];
 
                         if ((value as Float32Array).length !== undefined) {
                             params.push(`[${value}]`);
@@ -136,15 +140,15 @@ namespace Facepunch {
             }
 
             setParameter(param: CommandBufferParameter, value: Float32Array | Texture): void {
-                this.parameters[param] = value;
+                this.parameters[param.id] = value;
             }
 
             getArrayParameter(param: CommandBufferParameter): Float32Array {
-                return this.parameters[param] as Float32Array;
+                return this.parameters[param.id] as Float32Array;
             }
 
             getTextureParameter(param: CommandBufferParameter): Texture {
-                return this.parameters[param] as Texture;
+                return this.parameters[param.id] as Texture;
             }
 
             run(): void {
@@ -234,28 +238,27 @@ namespace Facepunch {
             }
 
             private onSetUniformParameter(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                const value = args.parameters[args.parameter];
-                if (value === undefined) return;
+                const param = args.parameter;
+                const value = args.parameters[param.id];
+                if (value == null) return;
 
-                switch (args.parameter) {
-                case CommandBufferParameter.ProjectionMatrix:
-                case CommandBufferParameter.InverseProjectionMatrix:
-                case CommandBufferParameter.ViewMatrix:
-                case CommandBufferParameter.InverseViewMatrix:
+                switch (param.type) {
+                case UniformType.Matrix4:
                     gl.uniformMatrix4fv(args.uniform.getLocation(), false, value as Float32Array);
                     break;
-                case CommandBufferParameter.CameraPos:
-                case CommandBufferParameter.FogColor:
+                case UniformType.Float:
+                    gl.uniform1f(args.uniform.getLocation(), value[0]);
+                    break;
+                case UniformType.Float2:
+                    gl.uniform2f(args.uniform.getLocation(), value[0], value[1]);
+                    break;
+                case UniformType.Float3:
                     gl.uniform3f(args.uniform.getLocation(), value[0], value[1], value[2]);
                     break;
-                case CommandBufferParameter.TimeParams:
-                case CommandBufferParameter.ScreenParams:
-                case CommandBufferParameter.ClipParams:
-                case CommandBufferParameter.FogParams:
+                case UniformType.Float4:
                     gl.uniform4f(args.uniform.getLocation(), value[0], value[1], value[2], value[3]);
                     break;
-                case CommandBufferParameter.RefractColorMap:
-                case CommandBufferParameter.RefractDepthMap:
+                case UniformType.Texture:
                     const tex = value as Texture;
 
                     gl.activeTexture(gl.TEXTURE0 + args.unit);

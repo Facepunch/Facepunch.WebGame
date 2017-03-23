@@ -3,6 +3,9 @@
 namespace Facepunch {
     export namespace WebGame {
         export class Game implements ICommandBufferParameterProvider {
+            static readonly timeInfoParam = new CommandBufferParameter(UniformType.Float4);
+            static readonly screenInfoParam = new CommandBufferParameter(UniformType.Float4);
+
             canLockPointer = false;
 
             readonly shaders: ShaderManager;
@@ -201,8 +204,8 @@ namespace Facepunch {
                 this.screenParams[2] = 1 / this.getWidth();
                 this.screenParams[3] = 1 / this.getHeight();
 
-                buf.setParameter(CommandBufferParameter.TimeParams, this.timeParams);
-                buf.setParameter(CommandBufferParameter.ScreenParams, this.screenParams);
+                buf.setParameter(Game.timeInfoParam, this.timeParams);
+                buf.setParameter(Game.screenInfoParam, this.screenParams);
             }
         }
     }

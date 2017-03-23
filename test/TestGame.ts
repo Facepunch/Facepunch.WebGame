@@ -27,9 +27,12 @@ class TestGame extends WebGame.Game {
         for (let x = -5; x < 5; ++x) {
             for (let y = -5; y < 5; ++y) {
                 const obj = new WebGame.StaticProp();
+
+                const angle = Math.floor(Math.random() * 4) * Math.PI * 0.5;
+
                 obj.setPosition(x * 128, y * 128, 0);
-                obj.setAngles(0, Math.random() * Math.PI * 2, 0);
-                obj.setScale(Math.random() + 0.5);
+                obj.setAngles(0, angle + (Math.random() - 0.5) * Math.PI / 16, 0);
+                obj.setScale(Math.random() * 0.25 + 1.25);
                 obj.setModel(model);
 
                 this.testObjects.push(obj);
@@ -91,10 +94,10 @@ class TestGame extends WebGame.Game {
             this.time += dt;
 
             const ang = this.time * Math.PI / 15;
-            const height = Math.sin(this.time * Math.PI / 4) * 128 + 64;
-            const radius = 256;
+            const height = Math.sin(this.time * Math.PI / 4) * 96 + 256;
+            const radius = 512;
 
-            this.lookAngs.set(ang, Math.atan2(64-height, radius));
+            this.lookAngs.set(ang, Math.atan2(128 - height, radius));
             this.updateCameraAngles();
             
             this.mainCamera.setPosition(Math.sin(-ang) * -radius, Math.cos(-ang) * -radius, height);

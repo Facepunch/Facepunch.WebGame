@@ -95,12 +95,12 @@ namespace Facepunch {
                 bufferSetup(buf: CommandBuffer, context: RenderContext): void {
                     super.bufferSetup(buf, context);
 
-                    this.projectionMatrix.bufferParameter(buf, CommandBufferParameter.ProjectionMatrix);
-                    this.viewMatrix.bufferParameter(buf, CommandBufferParameter.ViewMatrix);
+                    this.projectionMatrix.bufferParameter(buf, Camera.projectionMatrixParam);
+                    this.viewMatrix.bufferParameter(buf, Camera.viewMatrixParam);
 
-                    this.time.bufferParameter(buf, CommandBufferParameter.TimeParams);
-                    this.fogParams.bufferParameter(buf, CommandBufferParameter.FogParams);
-                    this.fogColor.bufferParameter(buf, CommandBufferParameter.FogColor);
+                    this.time.bufferParameter(buf, Game.timeInfoParam);
+                    this.fogParams.bufferParameter(buf, Fog.fogInfoParam);
+                    this.fogColor.bufferParameter(buf, Fog.fogColorParam);
                 }
                 
                 bufferModelMatrix(buf: CommandBuffer, value: Float32Array): void {

@@ -1,6 +1,9 @@
 namespace Facepunch {
     export namespace WebGame {
         export class Fog implements ICommandBufferParameterProvider {
+            static readonly fogColorParam = new CommandBufferParameter(UniformType.Float3);
+            static readonly fogInfoParam = new CommandBufferParameter(UniformType.Float4);
+
             private readonly renderContext: RenderContext;
 
             start = 0;
@@ -21,9 +24,9 @@ namespace Facepunch {
                 this.colorValues[1] = this.color.y;
                 this.colorValues[2] = this.color.z;
 
-                buf.setParameter(CommandBufferParameter.FogColor, this.colorValues);
+                buf.setParameter(Fog.fogColorParam, this.colorValues);
 
-                const clipParams = buf.getArrayParameter(CommandBufferParameter.ClipParams);
+                const clipParams = buf.getArrayParameter(Camera.clipInfoParam);
 
                 const near = clipParams[0];
                 const far = clipParams[1];
@@ -37,7 +40,7 @@ namespace Facepunch {
                 this.paramsValues[2] = 0;
                 this.paramsValues[3] = this.maxDensity;
 
-                buf.setParameter(CommandBufferParameter.FogParams, this.paramsValues);
+                buf.setParameter(Fog.fogInfoParam, this.paramsValues);
             }
         }
     }
