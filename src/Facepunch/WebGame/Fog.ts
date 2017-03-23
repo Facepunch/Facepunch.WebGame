@@ -23,8 +23,10 @@ namespace Facepunch {
 
                 buf.setParameter(CommandBufferParameter.FogColor, this.colorValues);
 
-                const near = this.renderContext.camera.getNear();
-                const far = this.renderContext.camera.getFar();
+                const clipParams = buf.getArrayParameter(CommandBufferParameter.ClipParams);
+
+                const near = clipParams[0];
+                const far = clipParams[1];
 
                 const densMul = this.maxDensity / ((this.end - this.start) * (far - near));
                 const densNear = (near - this.start) * densMul;

@@ -2,24 +2,23 @@ namespace Facepunch {
     export namespace WebGame {
         export class RenderContext implements ICommandBufferParameterProvider {
             readonly game: Game;
-            readonly camera: Camera;
             readonly fog: Fog;
             
             private drawList: DrawList;
             private commandBuffer: CommandBuffer;
+
+            private drawListInvalid = true;
             private commandBufferInvalid = true;
 
             private opaqueFrameBuffer: FrameBuffer;
 
-            constructor(game: Game, camera: Camera) {
+            constructor(game: Game) {
                 this.game = game;
-                this.camera = camera;
                 this.fog = new Fog(this);
                 this.drawList = new DrawList(this);
                 this.commandBuffer = new CommandBuffer(game.context);
 
-                this.game.addDrawListInvalidationHandler((geom: boolean) => geom
-                    ? this.drawList.invalidate() : this.invalidate());
+                this.game.addDrawListInvalidationHandler((geom: boolean) => this.invalidate());
             }
 
             getOpaqueColorTexture(): RenderTexture {
@@ -31,22 +30,30 @@ namespace Facepunch {
             }
 
             invalidate(): void {
+                this.drawListInvalid = true;
                 this.commandBufferInvalid = true;
             }
 
-            render(): void {
-                this.drawList.clear();
-                this.game.populateDrawList(this.drawList, this.camera);
+            render(camera: Camera): void {
+                if (this.drawListInvalid) {
+                    this.commandBufferInvalid = true;
+                    this.drawList.clear();
+                    this.game.populateDrawList(this.drawList, camera);
+                }
 
-                this.commandBuffer.clearCommands();
-                this.drawList.appendToBuffer(this.commandBuffer, this);
+                if (this.commandBufferInvalid) {
+                    this.commandBuffer.clearCommands();
+                    this.drawList.appendToBuffer(this.commandBuffer, this);
+                }
 
-                this.commandBuffer.run(this);
+                camera.populateCommandBufferParameters(this.commandBuffer);
+                this.populateCommandBufferParameters(this.commandBuffer);
+
+                this.commandBuffer.run();
             }
 
             populateCommandBufferParameters(buf: CommandBuffer): void {
                 this.game.populateCommandBufferParameters(buf);
-                this.camera.populateCommandBufferParameters(buf);
                 this.fog.populateCommandBufferParameters(buf);
 
                 buf.setParameter(CommandBufferParameter.RefractColorMap, this.getOpaqueColorTexture());

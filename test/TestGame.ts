@@ -6,7 +6,7 @@ class TestGame extends WebGame.Game {
     private mainCamera: WebGame.PerspectiveCamera;
     private mainRenderContext: WebGame.RenderContext;
 
-    private testObject: WebGame.StaticProp;
+    private testObjects: WebGame.StaticProp[];
 
     private time = 0;
 
@@ -16,12 +16,25 @@ class TestGame extends WebGame.Game {
         this.canLockPointer = true;
 
         this.mainCamera = new WebGame.PerspectiveCamera(75, this.getWidth() / this.getHeight(), 1, 8192);
-        this.mainRenderContext = new WebGame.RenderContext(this, this.mainCamera);
+        this.mainRenderContext = new WebGame.RenderContext(this);
 
         this.mainCamera.setPosition(0, 128, 64);
 
-        this.testObject = new WebGame.StaticProp();
-        this.testObject.setModel(this.modelLoader.load("/models/military_case_02.model.json"));
+        this.testObjects = [];
+
+        const model = this.modelLoader.load("/models/military_case_02.model.json");
+
+        for (let x = -5; x < 5; ++x) {
+            for (let y = -5; y < 5; ++y) {
+                const obj = new WebGame.StaticProp();
+                obj.setPosition(x * 128, y * 128, 0);
+                obj.setAngles(0, Math.random() * Math.PI * 2, 0);
+                obj.setScale(Math.random() + 0.5);
+                obj.setModel(model);
+
+                this.testObjects.push(obj);
+            }
+        }
 
         const gl = this.context;
 
@@ -78,13 +91,13 @@ class TestGame extends WebGame.Game {
             this.time += dt;
 
             const ang = this.time * Math.PI / 15;
-            const height = 128;
+            const height = Math.sin(this.time * Math.PI / 4) * 128 + 64;
             const radius = 256;
 
             this.lookAngs.set(ang, Math.atan2(64-height, radius));
             this.updateCameraAngles();
             
-            this.mainCamera.setPosition(Math.sin(-ang) * -radius, Math.cos(-ang) * -radius, 128);
+            this.mainCamera.setPosition(Math.sin(-ang) * -radius, Math.cos(-ang) * -radius, height);
         }
     }
 
@@ -96,10 +109,10 @@ class TestGame extends WebGame.Game {
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
         gl.cullFace(gl.FRONT);
 
-        this.mainRenderContext.render();
+        this.mainRenderContext.render(this.mainCamera);
     }
 
     populateDrawList(drawList: WebGame.DrawList, camera: WebGame.Camera): void {
-        drawList.addItem(this.testObject);
+        drawList.addItems(this.testObjects);
     }
 }

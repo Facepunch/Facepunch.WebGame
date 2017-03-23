@@ -39,9 +39,19 @@ namespace Facepunch {
 
             addItem(item: IDrawListItem): void {
                 this.items.push(item);
-                this.updateItem(item);
                 item.onAddToDrawList(this);
-                this.invalid = true;
+                this.invalidate();
+            }
+
+            addItems<TItem extends IDrawListItem>(items: TItem[]): void {
+                if (items.length === 0) return;
+
+                for (let i = 0, iEnd = items.length; i < iEnd; ++i) {
+                    this.items.push(items[i]);
+                    items[i].onAddToDrawList(this);
+                }
+                
+                this.invalidate();
             }
 
             private isBuildingList: boolean = false;
@@ -49,10 +59,6 @@ namespace Facepunch {
             invalidate(): void {
                 if (this.isBuildingList) return;
                 this.invalid = true;
-            }
-
-            updateItem(item: IDrawListItem): void {
-                this.invalidate();
             }
 
             private bufferHandle(buf: CommandBuffer, handle: MeshHandle, context: RenderContext): void {

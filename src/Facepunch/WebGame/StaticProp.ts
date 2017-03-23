@@ -10,7 +10,7 @@ namespace Facepunch {
                 super();
 
                 this.drawable.entity = this;
-                this.drawable.isStatic = true;
+                this.drawable.isStatic = false;
             }
 
             setModel(model: Model): void {

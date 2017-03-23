@@ -34,7 +34,7 @@ namespace Facepunch {
             private invalidateDrawLists(): void {
                 if (!this.getIsVisible()) return;
                 for (let i = 0, iEnd = this.drawLists.length; i < iEnd; ++i) {
-                    this.drawLists[i].updateItem(this);
+                    this.drawLists[i].invalidate();
                 }
             }
 

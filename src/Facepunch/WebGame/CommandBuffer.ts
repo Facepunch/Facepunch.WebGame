@@ -81,7 +81,7 @@ namespace Facepunch {
                 return undefined;
             }
 
-            logCommands(): string {
+            logCommands(): void {
                 const commands: string[] = [];
 
                 for (let i = 0, iEnd = this.commands.length; i < iEnd; ++i) {
@@ -124,7 +124,7 @@ namespace Facepunch {
                     commands.push(`${this.getCommandName(command.action)}(${paramsJoined});`);
                 }
 
-                return commands.join("\r\n");
+                console.log(commands.join("\r\n"));
             }
 
             clearCommands(): void {
@@ -139,15 +139,16 @@ namespace Facepunch {
                 this.parameters[param] = value;
             }
 
-            private game: Game;
+            getArrayParameter(param: CommandBufferParameter): Float32Array {
+                return this.parameters[param] as Float32Array;
+            }
 
-            run(renderContext: RenderContext): void {
+            getTextureParameter(param: CommandBufferParameter): Texture {
+                return this.parameters[param] as Texture;
+            }
+
+            run(): void {
                 const gl = this.context;
-
-                this.game = renderContext.game;
-
-                renderContext.populateCommandBufferParameters(this);
-
                 for (let i = 0, iEnd = this.commands.length; i < iEnd; ++i) {
                     const command = this.commands[i];
                     command.action(gl, command);
@@ -386,7 +387,7 @@ namespace Facepunch {
             }
 
             bindFramebuffer(buffer: FrameBuffer, fitView?: boolean): void {
-                this.push(this.onBindFramebuffer, { framebuffer: buffer, fitView: fitView, game: this.game });
+                this.push(this.onBindFramebuffer, { framebuffer: buffer, fitView: fitView });
             }
 
             private onBindFramebuffer(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -398,7 +399,7 @@ namespace Facepunch {
                 }
 
                 if (args.fitView) {
-                    buffer.resize(args.game.getWidth(), args.game.getHeight());
+                    buffer.resize(gl.drawingBufferWidth, gl.drawingBufferHeight);
                 }
 
                 gl.bindFramebuffer(gl.FRAMEBUFFER, buffer.getHandle());
