@@ -39,12 +39,14 @@ namespace Facepunch {
 
             render(camera: Camera): void {
                 if (this.drawListInvalid) {
+                    this.drawListInvalid = false;
                     this.commandBufferInvalid = true;
                     this.drawList.clear();
                     this.game.populateDrawList(this.drawList, camera);
                 }
 
                 if (this.commandBufferInvalid) {
+                    this.commandBufferInvalid = false;
                     this.commandBuffer.clearCommands();
                     this.drawList.appendToBuffer(this.commandBuffer, this);
                 }
