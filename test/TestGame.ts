@@ -61,17 +61,30 @@ class TestGame extends WebGame.Game {
     protected onUpdateFrame(dt: number): void {
         super.onUpdateFrame(dt);
 
-        this.move.set(0, 0, 0);
-        const moveSpeed = 512 * dt;
+        if (this.isPointerLocked()) {
+            this.move.set(0, 0, 0);
+            const moveSpeed = 512 * dt;
 
-        if (this.isKeyDown(WebGame.Key.W)) this.move.z -= moveSpeed;
-        if (this.isKeyDown(WebGame.Key.S)) this.move.z += moveSpeed;
-        if (this.isKeyDown(WebGame.Key.A)) this.move.x -= moveSpeed;
-        if (this.isKeyDown(WebGame.Key.D)) this.move.x += moveSpeed;
+            if (this.isKeyDown(WebGame.Key.W)) this.move.z -= moveSpeed;
+            if (this.isKeyDown(WebGame.Key.S)) this.move.z += moveSpeed;
+            if (this.isKeyDown(WebGame.Key.A)) this.move.x -= moveSpeed;
+            if (this.isKeyDown(WebGame.Key.D)) this.move.x += moveSpeed;
 
-        if (this.move.lengthSq() > 0) {
-            this.mainCamera.applyRotationTo(this.move);
-            this.mainCamera.translate(this.move);
+            if (this.move.lengthSq() > 0) {
+                this.mainCamera.applyRotationTo(this.move);
+                this.mainCamera.translate(this.move);
+            }
+        } else {
+            this.time += dt;
+
+            const ang = this.time * Math.PI / 15;
+            const height = 128;
+            const radius = 256;
+
+            this.lookAngs.set(ang, Math.atan2(64-height, radius));
+            this.updateCameraAngles();
+            
+            this.mainCamera.setPosition(Math.sin(-ang) * -radius, Math.cos(-ang) * -radius, 128);
         }
     }
 
