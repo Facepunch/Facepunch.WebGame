@@ -101,6 +101,12 @@ namespace Facepunch {
                 this.invalidateMatrices();
             }
 
+            easeTo(goal: IVector3, delta: number): void {
+                this.position.x += (goal.x - this.position.x) * delta;
+                this.position.y += (goal.y - this.position.y) * delta;
+                this.position.z += (goal.z - this.position.z) * delta;
+            }
+
             setRotation(value: Quaternion): void {
                 this.rotation.copy(value);
                 this.invalidateMatrices();

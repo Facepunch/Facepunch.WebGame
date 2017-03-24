@@ -13,6 +13,16 @@ namespace Facepunch {
             this.y = y || 0;
         }
 
+        length(): number {
+            const x = this.x, y = this.y;
+            return Math.sqrt(x * x + y * y);
+        }
+
+        lengthSq(): number {
+            const x = this.x, y = this.y;
+            return x * x + y * y;
+        }
+
         set(x: number, y: number): this {
             this.x = x;
             this.y = y;
@@ -87,10 +97,18 @@ namespace Facepunch {
             return this;
         }
 
-        add(vec: IVector3): this {
-            this.x += vec.x;
-            this.y += vec.y;
-            this.z += vec.z;
+        add(x: number, y: number, z: number): this;
+        add(vec: IVector3): this;
+        add(vecOrX: IVector3 | number, y?: number, z?: number): this {
+            if (typeof vecOrX !== "number") {
+                this.x += vecOrX.x;
+                this.y += vecOrX.y;
+                this.z += vecOrX.z;
+            } else {
+                this.x += vecOrX;
+                this.y += y;
+                this.z += z;
+            }
             return this;
         }
 
