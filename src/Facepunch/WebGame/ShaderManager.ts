@@ -11,10 +11,8 @@ namespace Facepunch {
             }
 
             resetUniformCache(): void {
-                for (let name in this.namedPrograms) {
-                    if (this.namedPrograms.hasOwnProperty(name)) {
-                        this.namedPrograms[name].resetUniformCache();
-                    }
+                for (let i = 0, iEnd = this.ctorPrograms.length; i < iEnd; ++i) {
+                    this.ctorPrograms[i].program.resetUniformCache();
                 }
             }
 

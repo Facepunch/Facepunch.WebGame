@@ -10,8 +10,7 @@ namespace Facepunch {
             private drawList: DrawList;
             private commandBuffer: CommandBuffer;
 
-            private drawListInvalid = true;
-            private commandBufferInvalid = true;
+            private geometryInvalid = true;
 
             private opaqueFrameBuffer: FrameBuffer;
 
@@ -33,23 +32,21 @@ namespace Facepunch {
             }
 
             invalidate(): void {
-                this.drawListInvalid = true;
-                this.commandBufferInvalid = true;
+                this.geometryInvalid = true;
             }
 
             render(camera: Camera): void {
-                if (this.drawListInvalid) {
-                    this.drawListInvalid = false;
-                    this.commandBufferInvalid = true;
+                if (this.geometryInvalid) {
                     this.drawList.clear();
                     this.game.populateDrawList(this.drawList, camera);
                 }
 
-                if (this.commandBufferInvalid) {
-                    this.commandBufferInvalid = false;
+                if (this.geometryInvalid || this.drawList.isInvalid()) {
                     this.commandBuffer.clearCommands();
                     this.drawList.appendToBuffer(this.commandBuffer, this);
                 }
+                
+                this.geometryInvalid = false;
 
                 camera.populateCommandBufferParameters(this.commandBuffer);
                 this.populateCommandBufferParameters(this.commandBuffer);

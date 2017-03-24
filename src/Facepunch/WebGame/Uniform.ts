@@ -19,8 +19,10 @@ namespace Facepunch {
                 this.program = program;
                 this.name = name;
                 this.context = program.context;
+            }
 
-                this.toString = () => name;
+            toString(): string {
+                return this.name;
             }
 
             getLocation(): WebGLUniformLocation {

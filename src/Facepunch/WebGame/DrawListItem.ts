@@ -1,6 +1,7 @@
 namespace Facepunch {
     export namespace WebGame {
         export interface IDrawListItem {
+            invalidateDrawLists(): void;
             getIsVisible(): boolean;
             getIsInDrawList(drawList: DrawList): boolean;
             onAddToDrawList(list: DrawList): void;
@@ -31,7 +32,7 @@ namespace Facepunch {
                 this.invalidateDrawLists();
             }
 
-            private invalidateDrawLists(): void {
+            invalidateDrawLists(): void {
                 if (!this.getIsVisible()) return;
                 for (let i = 0, iEnd = this.drawLists.length; i < iEnd; ++i) {
                     this.drawLists[i].invalidate();

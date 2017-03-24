@@ -1,3 +1,5 @@
+/// <reference path="RenderResource.ts"/>
+
 namespace Facepunch {
     export namespace WebGame {
         export interface IModelInfo {
@@ -5,41 +7,20 @@ namespace Facepunch {
             meshData: ICompressedMeshData;
         }
 
-        export abstract class Model {
-            private readonly onLoadCallbacks: ((model: Model) => void)[] = [];
-
+        export abstract class Model extends RenderResource<Model> {
             readonly meshManager: MeshManager;
             readonly materialLoader: MaterialLoader;
 
             constructor(meshManager: MeshManager, materialLoader: MaterialLoader) {
+                super();
+
                 this.meshManager = meshManager;
                 this.materialLoader = materialLoader;
             }
 
-            abstract isLoaded(): boolean;
             abstract getMeshData(): IMeshData;
             abstract getMaterial(index: number): Material;
             abstract getMeshHandles(): MeshHandle[];
-
-            addOnLoadCallback(callback: (model: Model) => void): void {
-                if (this.isLoaded()) {
-                    callback(this);
-                } else {
-                    this.onLoadCallbacks.push(callback);
-                }
-            }
-
-            protected dispatchOnLoadCallbacks(): void {
-                if (!this.isLoaded()) {
-                    throw new Error("Model attempted to dispatch onLoad callbacks without any mesh data.");
-                }
-
-                for (let i = 0, iEnd = this.onLoadCallbacks.length; i < iEnd; ++i) {
-                    this.onLoadCallbacks[i](this);
-                }
-
-                this.onLoadCallbacks.splice(0, this.onLoadCallbacks.length);
-            }
         }
 
         export class ModelLoadable extends Model implements ILoadable {

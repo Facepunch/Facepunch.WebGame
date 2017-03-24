@@ -1,11 +1,14 @@
+/// <reference path="RenderResource.ts"/>
+
 namespace Facepunch {
     export namespace WebGame {
-        export abstract class Texture {
+        export abstract class Texture extends RenderResource<Texture> {
             private static nextId = 1;
 
             readonly id: number;
 
             constructor() {
+                super();
                 this.id = Texture.nextId++;
             }
 
@@ -190,14 +193,20 @@ namespace Facepunch {
 
         export class ProceduralTexture2D extends RenderTexture {
             private pixels: IPixelData;
+            private readonly name: string;
 
             private static readonly channelBuffer: number[] = [0, 0, 0, 0];
 
-            constructor(context: WebGLRenderingContext, width: number, height: number) {
+            constructor(context: WebGLRenderingContext, width: number, height: number, name?: string) {
                 super(context, TextureTarget.Texture2D, TextureFormat.Rgba,
                     TextureDataType.Uint8, width, height);
 
                 this.setWrapMode(TextureWrapMode.Repeat);
+                this.name = name;
+            }
+
+            toString(): string {
+                return this.name != null ? this.name : `[ProceduralTexture2D ${this.pixels.width}x${this.pixels.height}]`;
             }
 
             setPixelRgb(x: number, y: number, rgb: number): void {
@@ -344,7 +353,7 @@ namespace Facepunch {
             static getWhiteTexture(context: WebGLRenderingContext): Texture {
                 if (this.whiteTexture != null) return this.whiteTexture;
 
-                this.whiteTexture = new ProceduralTexture2D(context, 1, 1);
+                this.whiteTexture = new ProceduralTexture2D(context, 1, 1, "WHITE");
                 this.whiteTexture.setPixelRgb(0, 0, 0xffffff);
                 this.whiteTexture.apply();
 
@@ -355,7 +364,7 @@ namespace Facepunch {
             static getBlackTexture(context: WebGLRenderingContext): Texture {
                 if (this.blackTexture != null) return this.blackTexture;
 
-                this.blackTexture = new ProceduralTexture2D(context, 1, 1);
+                this.blackTexture = new ProceduralTexture2D(context, 1, 1, "BLACK");
                 this.blackTexture.setPixelRgb(0, 0, 0x000000);
                 this.blackTexture.apply();
 
@@ -366,7 +375,7 @@ namespace Facepunch {
             static getTranslucentTexture(context: WebGLRenderingContext): Texture {
                 if (this.translucentTexture != null) return this.translucentTexture;
 
-                this.translucentTexture = new ProceduralTexture2D(context, 1, 1);
+                this.translucentTexture = new ProceduralTexture2D(context, 1, 1, "TRANSLUCENT");
                 this.translucentTexture.setPixelRgba(0, 0, 0x00000000);
                 this.translucentTexture.apply();
 
@@ -379,7 +388,7 @@ namespace Facepunch {
 
                 const size = 64;
 
-                this.errorTexture = new ProceduralTexture2D(context, size, size);
+                this.errorTexture = new ProceduralTexture2D(context, size, size, "ERROR");
 
                 for (let y = 0; y < size; ++y) {
                     for (let x = 0; x < size; ++x) {
@@ -434,6 +443,7 @@ namespace Facepunch {
 
             private info: ITextureInfo;
             private nextElement = 0;
+            private canRender = false;
 
             private handle: WebGLTexture;
             private target: TextureTarget;
@@ -452,7 +462,7 @@ namespace Facepunch {
                         target: TextureTarget.Texture2D,
                         params: {
                             filter: TextureFilter.Linear,
-                            mipmap: false
+                            mipmap: true
                         },
                         elements: [
                             {
@@ -462,8 +472,14 @@ namespace Facepunch {
                         ]
                     });
                 }
+            }
 
-                this.toString = () => `url(${url})`;
+            toString(): string {
+                return `[TextureLoadable ${this.url}]`;
+            }
+
+            isLoaded(): boolean {
+                return super.isLoaded() && this.canRender;
             }
 
             getTarget(): TextureTarget {
@@ -585,11 +601,19 @@ namespace Facepunch {
                         ? TextureMinFilter.NearestMipmapLinear
                         : TextureMinFilter.LinearMipmapLinear;
 
+                    if (this.info.elements.length === 1) {
+                        gl.generateMipmap(this.target);
+                    }
+
                     gl.texParameteri(this.target, gl.TEXTURE_MIN_FILTER, minFilter);
                     gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                 }
 
                 gl.bindTexture(this.target, null);
+
+                this.canRender = true;
+                this.dispatchOnLoadCallbacks();
+
                 return success;
             }
 

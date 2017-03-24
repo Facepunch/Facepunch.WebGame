@@ -12,6 +12,10 @@ namespace Facepunch {
                 this.drawable.isStatic = isStatic;
             }
 
+            invalidateDrawLists(): void {
+                this.drawable.invalidateDrawLists();
+            }
+
             getIsVisible(): boolean {
                 return this.drawable.getIsVisible();
             }

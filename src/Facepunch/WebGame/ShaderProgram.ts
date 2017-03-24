@@ -23,12 +23,18 @@ namespace Facepunch {
             private attribLocations: { [id: number]: number } = {};
             private attribStates: { [id: number]: boolean } = {};
             private uniforms: Uniform[] = [];
+            
+            readonly name: string;
 
             sortOrder = 0;
 
             constructor(context: WebGLRenderingContext) {
                 this.context = context;
-                this.toString = () => (this.constructor as any).name;
+                this.name = (this.constructor as any).name;
+            }
+
+            toString(): string {
+                return this.name;
             }
 
             createMaterialProperties(): any {
