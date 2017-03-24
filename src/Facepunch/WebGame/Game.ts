@@ -8,6 +8,8 @@ namespace Facepunch {
 
             canLockPointer = false;
 
+            private initialized = false;
+
             readonly shaders: ShaderManager;
             readonly meshes: MeshManager;
 
@@ -95,9 +97,6 @@ namespace Facepunch {
                     this.lastAnimateCallback = time;
                     this.animate(deltaTime * 0.001);
                 };
-
-                this.onInitialize();
-                this.onResize();
             }
 
             getLastUpdateTime(): number {
@@ -153,6 +152,13 @@ namespace Facepunch {
 
             animate(dt?: number): void {
                 dt = dt || 0.01666667;
+
+                if (!this.initialized) {
+                    this.initialized = true;
+                    
+                    this.onInitialize();
+                    this.onResize();
+                }
 
                 for (let i = 0, iEnd = this.loaders.length; i < iEnd; ++i) {
                     this.loaders[i].update(4);
