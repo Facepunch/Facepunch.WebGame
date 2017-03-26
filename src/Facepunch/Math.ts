@@ -29,9 +29,29 @@ namespace Facepunch {
             return this;
         }
 
-        sub(vec: IVector2): this {
-            this.x -= vec.x;
-            this.y -= vec.y;
+        add(x: number, y: number): this;
+        add(vec: IVector2): this;
+        add(vecOrX: IVector2 | number, y?: number): this {
+            if (typeof vecOrX !== "number") {
+                this.x += vecOrX.x;
+                this.y += vecOrX.y;
+            } else {
+                this.x += vecOrX;
+                this.y += y;
+            }
+            return this;
+        }
+
+        sub(x: number, y: number): this;
+        sub(vec: IVector2): this;
+        sub(vecOrX: IVector2 | number, y?: number): this {
+            if (typeof vecOrX !== "number") {
+                this.x -= vecOrX.x;
+                this.y -= vecOrX.y;
+            } else {
+                this.x -= vecOrX;
+                this.y -= y;
+            }
             return this;
         }
 
@@ -48,9 +68,7 @@ namespace Facepunch {
         }
     }
 
-    export interface IVector3 {
-        x: number;
-        y: number;
+    export interface IVector3 extends IVector2 {
         z: number;
     }
 
