@@ -150,6 +150,9 @@ namespace Facepunch {
 
             resize(width: number, height: number): void {
                 if (this.width === width && this.height === height) return;
+                if (width === undefined || height === undefined) {
+                    throw new Error("Width or height value is undefined.");
+                }
 
                 const gl = this.context;
 
@@ -630,6 +633,9 @@ namespace Facepunch {
 
                 if (level > 0) {
                     gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                } else {
+                    this.info.width = image.width;
+                    this.info.height = image.height;
                 }
 
                 return true;
