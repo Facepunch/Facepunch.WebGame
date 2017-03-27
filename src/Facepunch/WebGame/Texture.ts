@@ -16,6 +16,10 @@ namespace Facepunch {
                 return this.getHandle() !== undefined;
             }
 
+            abstract hasMipLevel(level: number): boolean;
+            abstract getWidth(level: number): number;
+            abstract getHeight(level: number): number;
+
             abstract getTarget(): TextureTarget;
             abstract getHandle(): WebGLTexture;
 
@@ -98,6 +102,18 @@ namespace Facepunch {
                 this.setFilter(TextureMinFilter.Linear, TextureMagFilter.Nearest);
 
                 this.resize(width, height);
+            }
+            
+            hasMipLevel(level: number): boolean {
+                return level === 0;
+            }
+
+            getWidth(level: number): number {
+                return level === 0 ? this.width : undefined;
+            }
+
+            getHeight(level: number): number {
+                return level === 0 ? this.height : undefined;
             }
 
             setWrapMode(mode: TextureWrapMode): void;
@@ -203,6 +219,28 @@ namespace Facepunch {
 
                 this.setWrapMode(TextureWrapMode.Repeat);
                 this.name = name;
+            }
+
+            copyFrom(tex: Texture): void {
+                if (!tex.hasMipLevel(0)) throw new Error("The given texture to copy isn't fully loaded.");
+
+                const gl = this.context;
+                
+                const buf = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, buf);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex.getHandle(), 0);
+
+                if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                    gl.deleteFramebuffer(buf);
+                    throw new Error("Failed to copy texture (unable to create frame buffer).");
+                }
+
+                this.resize(tex.getWidth(0), tex.getHeight(0));
+
+                gl.readPixels(0, 0, this.pixels.width, this.pixels.height, this.format, this.type, this.pixels.values);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.deleteFramebuffer(buf);
             }
 
             toString(): string {
@@ -472,6 +510,25 @@ namespace Facepunch {
                         ]
                     });
                 }
+            }
+            
+            hasMipLevel(level: number): boolean {
+                const elems = this.info.elements;
+                for (let i = 0, iEnd = this.nextElement; i < iEnd; ++i) {
+                    if (elems[i].level === level) return true;
+                }
+
+                return false;
+            }
+
+            getWidth(level: number): number {
+                if (this.info == null) return undefined;
+                return this.info.width >> level;
+            }
+
+            getHeight(level: number): number {
+                if (this.info == null) return undefined;
+                return this.info.height >> level;
             }
 
             toString(): string {
