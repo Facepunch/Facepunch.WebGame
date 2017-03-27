@@ -1,10 +1,44 @@
 namespace Facepunch {
+    export interface IPoolable {
+        release(): void;
+    }
+
+    export class Pool<T extends IPoolable> {
+        private readonly list: T[] = [];
+        private readonly ctor: {new(): T};
+
+        readonly capacity = 256;
+
+        constructor(ctor: {new(): T}) {
+            this.ctor = ctor;
+        }
+
+        create(): T {
+            const list = this.list;
+            const length = list.length;
+            if (length === 0) return new this.ctor();
+            const item = list[length - 1];
+            list.length = length - 1;
+            return item;
+        }
+
+        release(item: T): void {
+            const list = this.list;
+            const length = list.length;
+            if (length >= this.capacity) return;
+            list[length] = item;
+            list.length = length + 1;
+        }
+    }
+
     export interface IVector2 {
         x: number;
         y: number;
     }
 
-    export class Vector2 implements IVector2 {
+    export class Vector2 implements IVector2, IPoolable {
+        static readonly pool = new Pool(Vector2);
+
         x: number;
         y: number;
 
@@ -66,13 +100,19 @@ namespace Facepunch {
             this.y = vec.y;
             return this;
         }
+        
+        release(): void {
+            Vector2.pool.release(this);
+        }
     }
 
     export interface IVector3 extends IVector2 {
         z: number;
     }
 
-    export class Vector3 implements IVector3 {
+    export class Vector3 implements IVector3, IPoolable {
+        static readonly pool = new Pool(Vector3);
+
         static readonly zero = new Vector3(0, 0, 0);
         static readonly one = new Vector3(1, 1, 1);
         
@@ -130,11 +170,41 @@ namespace Facepunch {
             return this;
         }
 
-        multiply(vec: IVector3): this
+        sub(x: number, y: number, z: number): this;
+        sub(vec: IVector3): this;
+        sub(vecOrX: IVector3 | number, y?: number, z?: number): this {
+            if (typeof vecOrX !== "number") {
+                this.x -= vecOrX.x;
+                this.y -= vecOrX.y;
+                this.z -= vecOrX.z;
+            } else {
+                this.x -= vecOrX;
+                this.y -= y;
+                this.z -= z;
+            }
+            return this;
+        }
+
+        multiply(x: number, y: number, z: number): this;
+        multiply(vec: IVector3): this;
+        multiply(vecOrX: IVector3 | number, y?: number, z?: number): this {
+            if (typeof vecOrX !== "number") {
+                this.x *= vecOrX.x;
+                this.y *= vecOrX.y;
+                this.z *= vecOrX.z;
+            } else {
+                this.x *= vecOrX;
+                this.y *= y;
+                this.z *= z;
+            }
+            return this;
+        }
+
+        divide(vec: IVector3): this
         {
-            this.x *= vec.x;
-            this.y *= vec.y;
-            this.z *= vec.z;
+            this.x /= vec.x;
+            this.y /= vec.y;
+            this.z /= vec.z;
             return this;
         }
 
@@ -188,9 +258,19 @@ namespace Facepunch {
             this.z = z * invLen;
             return this;
         }
+        
+        release(): void {
+            Vector3.pool.release(this);
+        }
     }
 
-    export class Vector4 {
+    export interface IVector4 extends IVector3 {
+        w: number;
+    }
+
+    export class Vector4 implements IVector4, IPoolable {
+        static readonly pool = new Pool(Vector4);
+
         x: number;
         y: number;
         z: number;
@@ -259,9 +339,15 @@ namespace Facepunch {
 
             return this;
         }
+        
+        release(): void {
+            Vector4.pool.release(this);
+        }
     }
 
-    export class Quaternion {
+    export class Quaternion implements IVector4, IPoolable {
+        static readonly pool = new Pool(Quaternion);
+
         x: number;
         y: number;
         z: number;
@@ -343,6 +429,10 @@ namespace Facepunch {
 
             return this;
         }
+        
+        release(): void {
+            Quaternion.pool.release(this);
+        }
     }
 
     export enum AxisOrder {
@@ -378,11 +468,13 @@ namespace Facepunch {
         }
     }
 
-    export class Box3 {
+    export class Box3 implements IPoolable {
+        static readonly pool = new Pool(Box3);
+
         min = new Vector3();
         max = new Vector3();
 
-        constructor(min?: Vector3, max?: Vector3) {
+        constructor(min?: IVector3, max?: IVector3) {
             if (min !== undefined) this.min.copy(min);
             if (max !== undefined) this.max.copy(max);
         }
@@ -393,11 +485,45 @@ namespace Facepunch {
             return this;
         }
 
-        distanceToPoint(vec: Vector3): number {
+        clampLineSegment(a: IVector3, b: IVector3): boolean {
+            const difX = b.x - a.x;
+            const difY = b.y - a.y;
+            const difZ = b.z - a.z;
+
+            const invX = 1 / difX;
+            const invY = 1 / difY;
+            const invZ = 1 / difZ;
+
+            const tx0 = (this.min.x - a.x) * invX;
+            const tx1 = (this.max.x - a.x) * invX;
+            const ty0 = (this.min.y - a.y) * invY;
+            const ty1 = (this.max.y - a.y) * invY;
+            const tz0 = (this.min.z - a.z) * invZ;
+            const tz1 = (this.max.z - a.z) * invZ;
+
+            const tMin = Math.max(Math.min(tx0, tx1), Math.min(ty0, ty1), Math.min(tz0, tz1));
+            const tMax = Math.min(Math.max(tx0, tx1), Math.max(ty0, ty1), Math.max(tz0, tz1));
+
+            a.x += tMin * difX;
+            a.y += tMin * difY;
+            a.z += tMin * difZ;
+            
+            b.x += (tMax - 1) * difX;
+            b.y += (tMax - 1) * difY;
+            b.z += (tMax - 1) * difZ;
+
+            return tMax >= tMin;
+        }
+
+        distanceToPoint(vec: IVector3): number {
             const minX = Math.max(0, this.min.x - vec.x, vec.x - this.max.x);
             const minY = Math.max(0, this.min.y - vec.y, vec.y - this.max.y);
             const minZ = Math.max(0, this.min.z - vec.z, vec.z - this.max.z);
             return Math.sqrt(minX * minX + minY * minY + minZ * minZ);
+        }
+        
+        release(): void {
+            Box3.pool.release(this);
         }
     }
 
