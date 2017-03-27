@@ -4,21 +4,29 @@ namespace Facepunch {
             private context: WebGLRenderingContext;
             private frameBuffer: WebGLFramebuffer;
 
-            private width: number;
-            private height: number;
+            private ownsFrameTexture: boolean;
+            private ownsDepthTexture: boolean;
 
             private frameTexture: RenderTexture;
             private depthTexture: RenderTexture;
 
-            constructor(gl: WebGLRenderingContext, width: number, height: number) {
-                this.context = gl;
+            constructor(tex: RenderTexture);
+            constructor(gl: WebGLRenderingContext, width: number, height: number);
+            constructor(glOrTex: WebGLRenderingContext | RenderTexture, width?: number, height?: number) {
+                
+                let gl: WebGLRenderingContext;
 
-                this.width = width;
-                this.height = height;
-
-                this.frameTexture = new RenderTexture(gl,
-                    TextureTarget.Texture2D, TextureFormat.Rgba,
-                    TextureDataType.Uint8, width, height);
+                if (width !== undefined) {
+                    this.ownsFrameTexture = true;
+                    this.context = gl = glOrTex as WebGLRenderingContext;
+                    this.frameTexture = new RenderTexture(gl,
+                        TextureTarget.Texture2D, TextureFormat.Rgba,
+                        TextureDataType.Uint8, width, height);
+                } else {
+                    this.ownsFrameTexture = false;
+                    this.frameTexture = glOrTex as RenderTexture;
+                    this.context = gl = this.frameTexture.context;
+                }
 
                 this.frameBuffer = gl.createFramebuffer();
 
@@ -48,10 +56,12 @@ namespace Facepunch {
                 const gl = this.context;
 
                 if (existing == null) {
-                    this.depthTexture = new RenderTexture(gl,
-                        TextureTarget.Texture2D, TextureFormat.DepthComponent,
-                        TextureDataType.Uint32, this.width, this.height);
+                    this.ownsDepthTexture = true;
+                    this.depthTexture = new RenderTexture(gl, TextureTarget.Texture2D,
+                        TextureFormat.DepthComponent, TextureDataType.Uint32,
+                        this.frameTexture.getWidth(0), this.frameTexture.getWidth(0));
                 } else {
+                    this.ownsDepthTexture = false;
                     this.depthTexture = existing;
                 }
 
@@ -74,26 +84,23 @@ namespace Facepunch {
                     this.frameBuffer = undefined;
                 }
 
-                if (this.frameTexture !== undefined) {
+                if (this.frameTexture !== undefined && this.ownsFrameTexture) {
                     this.frameTexture.dispose();
                     this.frameTexture = undefined;
+                    this.ownsFrameTexture = undefined;
                 }
 
-                if (this.depthTexture !== undefined) {
+                if (this.depthTexture !== undefined && this.ownsDepthTexture) {
                     this.depthTexture.dispose();
                     this.depthTexture = undefined;
+                    this.ownsDepthTexture = undefined;
                 }
             }
 
             resize(width: number, height: number): void {
-                if (this.width === width && this.height === height) return;
+                if (this.ownsFrameTexture) this.frameTexture.resize(width, height);
 
-                this.width = width;
-                this.height = height;
-
-                this.frameTexture.resize(width, height);
-
-                if (this.depthTexture !== undefined) {
+                if (this.depthTexture !== undefined && this.ownsDepthTexture) {
                     this.depthTexture.resize(width, height);
                 }
             }

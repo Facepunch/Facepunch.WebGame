@@ -142,6 +142,8 @@ namespace Facepunch {
 
                 this.opaque.sort(DrawList.compareHandles);
                 this.translucent.sort(DrawList.compareHandles);
+                
+                this.invalid = false;
             }
 
             appendToBuffer(buf: CommandBuffer, context: RenderContext): void {
