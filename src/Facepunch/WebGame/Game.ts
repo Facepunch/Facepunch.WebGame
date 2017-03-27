@@ -71,6 +71,11 @@ namespace Facepunch {
                     }
                 });
 
+                window.addEventListener("mousewheel", evnt => {
+                    this.onMouseScroll(evnt.wheelDelta / 400);
+                    return false;
+                });
+
                 window.addEventListener("keydown", evnt => {
                     if (evnt.which < 0 || evnt.which >= 128) return true;
                     this.heldKeys[evnt.which] = true;
@@ -194,6 +199,8 @@ namespace Facepunch {
             
             protected onMouseDown(button: MouseButton, screenPos: Vector2): void {}
             protected onMouseUp(button: MouseButton, screenPos: Vector2): void {}
+
+            protected onMouseScroll(delta: number) {}
 
             protected onMouseMove(screenPos: Vector2): void {}
             protected onMouseLook(delta: Vector2): void {}
