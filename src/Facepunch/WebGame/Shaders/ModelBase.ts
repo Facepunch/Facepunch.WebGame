@@ -92,8 +92,8 @@ namespace Facepunch {
                     this.noFog = this.addUniform("uNoFog", Uniform1F);
                 }
 
-                bufferSetup(buf: CommandBuffer, context: RenderContext): void {
-                    super.bufferSetup(buf, context);
+                bufferSetup(buf: CommandBuffer): void {
+                    super.bufferSetup(buf);
 
                     this.projectionMatrix.bufferParameter(buf, Camera.projectionMatrixParam);
                     this.viewMatrix.bufferParameter(buf, Camera.viewMatrixParam);

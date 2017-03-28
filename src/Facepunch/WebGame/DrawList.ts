@@ -61,7 +61,7 @@ namespace Facepunch {
                 this.invalid = true;
             }
 
-            private bufferHandle(buf: CommandBuffer, handle: MeshHandle, context: RenderContext): void {
+            private bufferHandle(buf: CommandBuffer, handle: MeshHandle): void {
                 let changedMaterial = false;
                 let changedProgram = false;
                 let changedTransform = false;
@@ -83,7 +83,7 @@ namespace Facepunch {
                         this.lastHandle.material.program.bufferDisableAttributes(buf);
                     }
 
-                    program.bufferSetup(buf, context);
+                    program.bufferSetup(buf);
                 }
 
                 if (changedMaterial) {
@@ -156,16 +156,16 @@ namespace Facepunch {
                 if (this.hasRefraction) context.bufferOpaqueTargetBegin(buf);
 
                 for (let i = 0, iEnd = this.opaque.length; i < iEnd; ++i) {
-                    this.bufferHandle(buf, this.opaque[i], context);
+                    this.bufferHandle(buf, this.opaque[i]);
                 }
 
                 if (this.hasRefraction) {
                     context.bufferRenderTargetEnd(buf);
-                    this.bufferHandle(buf, this.game.meshes.getComposeFrameMeshHandle(), context);
+                    this.bufferHandle(buf, this.game.meshes.getComposeFrameMeshHandle());
                 }
 
                 for (let i = 0, iEnd = this.translucent.length; i < iEnd; ++i) {
-                    this.bufferHandle(buf, this.translucent[i], context);
+                    this.bufferHandle(buf, this.translucent[i]);
                 }
 
                 if (this.lastHandle.material !== undefined) {

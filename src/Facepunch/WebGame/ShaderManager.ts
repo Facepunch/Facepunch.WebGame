@@ -46,7 +46,7 @@ namespace Facepunch {
             get(name: string): ShaderProgram;
             get(ctor: IProgramCtor): ShaderProgram;
             get(nameOrCtor: string | IProgramCtor): ShaderProgram {
-                if (typeof name === "string") {
+                if (typeof nameOrCtor === "string") {
                     return this.getFromName(nameOrCtor as string);
                 } else {
                     return this.getFromCtor(nameOrCtor as IProgramCtor);

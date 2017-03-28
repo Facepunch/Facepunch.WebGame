@@ -48,11 +48,11 @@ namespace Facepunch {
                     this.compile();
                 }
 
-                bufferSetup(buf: CommandBuffer, context: RenderContext): void {
-                    super.bufferSetup(buf, context);
+                bufferSetup(buf: CommandBuffer): void {
+                    super.bufferSetup(buf);
 
-                    this.frameColor.bufferValue(buf, context.getOpaqueColorTexture());
-                    this.frameDepth.bufferValue(buf, context.getOpaqueDepthTexture());
+                    this.frameColor.bufferParameter(buf, RenderContext.opaqueColorParam);
+                    this.frameDepth.bufferParameter(buf, RenderContext.opaqueDepthParam);
                 }
             }
         }

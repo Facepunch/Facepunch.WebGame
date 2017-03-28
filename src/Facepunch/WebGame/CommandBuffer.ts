@@ -72,8 +72,11 @@ namespace Facepunch {
 
             private lastCommand: ICommandBufferItem;
 
-            constructor(context: WebGLRenderingContext) {
+            readonly immediate: boolean;
+
+            constructor(context: WebGLRenderingContext, immediate: boolean = false) {
                 this.context = context;
+                this.immediate = !!immediate;
                 this.clearCommands();
             }
 
@@ -160,9 +163,12 @@ namespace Facepunch {
             }
 
             private push(action: CommandBufferAction, args: ICommandBufferItem): void {
-                args.action = action;
-                this.commands.push(args);
-                this.lastCommand = args;
+                if (this.immediate) action(this.context, args);
+                else {
+                    args.action = action;
+                    this.commands.push(args);
+                    this.lastCommand = args;
+                }
             }
 
             clear(mask: number): void {

@@ -247,7 +247,7 @@ namespace Facepunch {
                 this.bufferEnableAttributes(buf, null);
             }
 
-            bufferSetup(buf: CommandBuffer, context: RenderContext): void {
+            bufferSetup(buf: CommandBuffer): void {
                 buf.useProgram(this);
             }
 
