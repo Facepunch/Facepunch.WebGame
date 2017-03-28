@@ -239,7 +239,9 @@ namespace Facepunch {
                     throw new Error("Failed to copy texture (unable to create frame buffer).");
                 }
 
-                this.resize(tex.getWidth(0), tex.getHeight(0));
+                if (tex !== this) {
+                    this.resize(tex.getWidth(0), tex.getHeight(0));
+                }
 
                 gl.readPixels(0, 0, this.pixels.width, this.pixels.height, this.format, this.type, this.pixels.values);
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -358,7 +360,7 @@ namespace Facepunch {
                 }
             }
 
-            apply(): void {
+            writePixels(): void {
                 const gl = this.context;
 
                 gl.bindTexture(this.target, this.getHandle());
@@ -368,14 +370,25 @@ namespace Facepunch {
                 gl.bindTexture(this.target, null);
             }
 
-            applyRegion(x: number, y: number, width: number, height: number): void {
-                const gl = this.context;
+            readPixels(): void;
+            readPixels(frameBuffer: FrameBuffer): void;
+            readPixels(frameBuffer?: FrameBuffer): void {
+                if (frameBuffer == null) {
+                    this.copyFrom(this);
+                } else {
+                    const tex = frameBuffer.getColorTexture();
 
-                gl.bindTexture(this.target, this.getHandle());
-                gl.texSubImage2D(this.target, 0, x, y,
-                    this.pixels.width, this.pixels.height, this.format,
-                    this.type, this.pixels.values);
-                gl.bindTexture(this.target, null);
+                    const width = tex.getWidth(0);
+                    const height = tex.getHeight(0);
+
+                    if (tex !== this) this.resize(width, height);
+
+                    const gl = this.context;
+
+                    frameBuffer.begin();
+                    gl.readPixels(0, 0, width, height, this.format, this.type, this.pixels.values);
+                    frameBuffer.end();
+                }
             }
 
             protected onResize(width: number, height: number) {
@@ -396,7 +409,7 @@ namespace Facepunch {
 
                 this.whiteTexture = new ProceduralTexture2D(context, 1, 1, "WHITE");
                 this.whiteTexture.setPixelRgb(0, 0, 0xffffff);
-                this.whiteTexture.apply();
+                this.whiteTexture.writePixels();
 
                 return this.whiteTexture;
             }
@@ -407,7 +420,7 @@ namespace Facepunch {
 
                 this.blackTexture = new ProceduralTexture2D(context, 1, 1, "BLACK");
                 this.blackTexture.setPixelRgb(0, 0, 0x000000);
-                this.blackTexture.apply();
+                this.blackTexture.writePixels();
 
                 return this.blackTexture;
             }
@@ -418,7 +431,7 @@ namespace Facepunch {
 
                 this.translucentTexture = new ProceduralTexture2D(context, 1, 1, "TRANSLUCENT");
                 this.translucentTexture.setPixelRgba(0, 0, 0x00000000);
-                this.translucentTexture.apply();
+                this.translucentTexture.writePixels();
 
                 return this.translucentTexture;
             }
@@ -438,7 +451,7 @@ namespace Facepunch {
                     }
                 }
 
-                this.errorTexture.apply();
+                this.errorTexture.writePixels();
 
                 return this.errorTexture;
             }
