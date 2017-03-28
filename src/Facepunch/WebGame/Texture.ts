@@ -27,9 +27,11 @@ namespace Facepunch {
         }
 
         export enum TextureFormat {
+            Alpha = WebGLRenderingContext.ALPHA,
             Rgb = WebGLRenderingContext.RGB,
             Rgba = WebGLRenderingContext.RGBA,
-            DepthComponent = WebGLRenderingContext.DEPTH_COMPONENT
+            DepthComponent = WebGLRenderingContext.DEPTH_COMPONENT,
+            Luminance = WebGLRenderingContext.LUMINANCE
         }
 
         export enum TextureDataType {
@@ -182,17 +184,19 @@ namespace Facepunch {
             readonly values: ArrayBufferView;
         }
 
-        export class Uint8PixelData implements IPixelData {
+        export class PixelData<TArray extends ArrayBufferView> implements IPixelData {
             readonly channels: number;
             readonly width: number;
             readonly height: number;
-            readonly values: Uint8Array;
+            readonly values: TArray;
             
-            constructor(format: TextureFormat, width: number, height: number) {
+            constructor(format: TextureFormat, width: number, height: number, ctor: {new(size: number): TArray}) {
                 this.width = width;
                 this.height = height;
 
                 switch (format) {
+                    case TextureFormat.Alpha:
+                    case TextureFormat.Luminance:
                     case TextureFormat.DepthComponent:
                         this.channels = 1;
                         break;
@@ -206,22 +210,33 @@ namespace Facepunch {
                         throw new Error("Texture format not implemented.");
                 }
 
-                this.values = new Uint8Array(this.channels * width * height);
+                this.values = new ctor(this.channels * width * height);
             }
         }
 
         export class ProceduralTexture2D extends RenderTexture {
             private pixels: IPixelData;
-            private readonly name: string;
+
+            name: string;
 
             private static readonly channelBuffer: number[] = [0, 0, 0, 0];
 
-            constructor(context: WebGLRenderingContext, width: number, height: number, name?: string) {
-                super(context, TextureTarget.Texture2D, TextureFormat.Rgba,
-                    TextureDataType.Uint8, width, height);
+            constructor(context: WebGLRenderingContext, width: number, height: number,
+                format?: TextureFormat, type?: TextureDataType) {
+                super(context, TextureTarget.Texture2D, format === undefined ? TextureFormat.Rgba : format,
+                    type === undefined ? TextureDataType.Uint8 : type, width, height);
 
                 this.setWrapMode(TextureWrapMode.Repeat);
-                this.name = name;
+            }
+
+            setImage(image: HTMLImageElement): void {
+                this.resize(image.width, image.height);
+
+                const gl = this.context;
+
+                gl.bindTexture(this.target, this.getHandle());
+                gl.texSubImage2D(this.target, 0, 0, 0, this.format, this.type, image);
+                gl.bindTexture(this.target, null);
             }
 
             copyFrom(tex: Texture): void {
@@ -394,7 +409,16 @@ namespace Facepunch {
             protected onResize(width: number, height: number) {
                 switch (this.type) {
                     case TextureDataType.Uint8:
-                        this.pixels = new Uint8PixelData(this.format, width, height);
+                        this.pixels = new PixelData(this.format, width, height, Uint8Array);
+                        break;
+                    case TextureDataType.Uint16:
+                        this.pixels = new PixelData(this.format, width, height, Uint16Array);
+                        break;
+                    case TextureDataType.Uint32:
+                        this.pixels = new PixelData(this.format, width, height, Uint32Array);
+                        break;
+                    case TextureDataType.Float:
+                        this.pixels = new PixelData(this.format, width, height, Float32Array);
                         break;
                     default:
                         throw new Error("Texture data type not implemented.");
@@ -407,7 +431,8 @@ namespace Facepunch {
             static getWhiteTexture(context: WebGLRenderingContext): Texture {
                 if (this.whiteTexture != null) return this.whiteTexture;
 
-                this.whiteTexture = new ProceduralTexture2D(context, 1, 1, "WHITE");
+                this.whiteTexture = new ProceduralTexture2D(context, 1, 1);
+                this.whiteTexture.name = "WHITE";
                 this.whiteTexture.setPixelRgb(0, 0, 0xffffff);
                 this.whiteTexture.writePixels();
 
@@ -418,7 +443,8 @@ namespace Facepunch {
             static getBlackTexture(context: WebGLRenderingContext): Texture {
                 if (this.blackTexture != null) return this.blackTexture;
 
-                this.blackTexture = new ProceduralTexture2D(context, 1, 1, "BLACK");
+                this.blackTexture = new ProceduralTexture2D(context, 1, 1);
+                this.blackTexture.name = "BLACK";
                 this.blackTexture.setPixelRgb(0, 0, 0x000000);
                 this.blackTexture.writePixels();
 
@@ -429,7 +455,8 @@ namespace Facepunch {
             static getTranslucentTexture(context: WebGLRenderingContext): Texture {
                 if (this.translucentTexture != null) return this.translucentTexture;
 
-                this.translucentTexture = new ProceduralTexture2D(context, 1, 1, "TRANSLUCENT");
+                this.translucentTexture = new ProceduralTexture2D(context, 1, 1);
+                this.translucentTexture.name = "TRANSLUCENT";
                 this.translucentTexture.setPixelRgba(0, 0, 0x00000000);
                 this.translucentTexture.writePixels();
 
@@ -442,7 +469,8 @@ namespace Facepunch {
 
                 const size = 64;
 
-                this.errorTexture = new ProceduralTexture2D(context, size, size, "ERROR");
+                this.errorTexture = new ProceduralTexture2D(context, size, size);
+                this.errorTexture.name = "ERROR";
 
                 for (let y = 0; y < size; ++y) {
                     for (let x = 0; x < size; ++x) {

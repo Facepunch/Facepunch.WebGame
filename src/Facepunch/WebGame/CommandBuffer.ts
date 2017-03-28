@@ -381,7 +381,7 @@ namespace Facepunch {
             }
 
             drawElements(mode: number, count: number, type: number, offset: number, elemSize: number): void {
-                if (this.lastCommand.action === this.onDrawElements &&
+                if (this.lastCommand != null && this.lastCommand.action === this.onDrawElements &&
                     this.lastCommand.type === type &&
                     this.lastCommand.offset + this.lastCommand.count * elemSize === offset) {
                     this.lastCommand.count += count;

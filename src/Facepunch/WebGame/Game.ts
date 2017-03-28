@@ -46,12 +46,22 @@ namespace Facepunch {
                 this.materialLoader = this.addLoader(new MaterialLoader(this));
                 this.textureLoader = this.addLoader(new TextureLoader(this.context));
                 this.modelLoader = this.addLoader(new ModelLoader(this));
+                
+                this.enableExtension("OES_texture_float");
+                this.enableExtension("OES_texture_float_linear");
+                this.enableExtension("EXT_frag_depth");
+                this.enableExtension("WEBGL_depth_texture");
 
                 container.addEventListener("mousedown", evnt => {
                     this.heldMouseButtons[evnt.which] = true;
                     this.onMouseDown(evnt.which as MouseButton,
                         this.getScreenPos(evnt.pageX, evnt.pageY, this.mouseScreenPos));
                     if (this.canLockPointer) this.container.requestPointerLock();
+                    return false;
+                });
+
+                this.canvas.addEventListener("contextmenu", evnt => {
+                    evnt.preventDefault();
                     return false;
                 });
 
@@ -102,6 +112,12 @@ namespace Facepunch {
                     this.lastAnimateCallback = time;
                     this.animate(deltaTime * 0.001);
                 };
+            }
+            
+            protected enableExtension(name: string): void {
+                if (this.context.getExtension(name) == null) {
+                    console.warn(`WebGL extension '${name}' is unsupported.`);
+                }
             }
 
             getLastUpdateTime(): number {
