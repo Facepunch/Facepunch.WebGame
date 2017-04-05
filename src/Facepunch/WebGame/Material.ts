@@ -1,3 +1,5 @@
+/// <reference path="RenderResource.ts"/>
+
 namespace Facepunch {
     export namespace WebGame {
         export enum MaterialPropertyType {
@@ -17,7 +19,7 @@ namespace Facepunch {
             properties: IMaterialProperty[];
         }
 
-        export class Material {
+        export class Material extends RenderResource<Material> {
             private static nextId = 0;
 
             readonly id = Material.nextId++;
@@ -30,6 +32,8 @@ namespace Facepunch {
             constructor();
             constructor(program: ShaderProgram);
             constructor(program?: ShaderProgram) {
+                super();
+
                 this.program = program;
 
                 if (program != null) {
@@ -37,6 +41,10 @@ namespace Facepunch {
                 } else {
                     this.properties = {};
                 }
+            }
+
+            isLoaded(): boolean {
+                return this.program != null;
             }
         }
 
@@ -76,6 +84,10 @@ namespace Facepunch {
 
                     for (let i = 0; i < info.properties.length; ++i) {
                         this.addPropertyFromInfo(info.properties[i]);
+                    }
+
+                    if (this.program != null) {
+                        this.dispatchOnLoadCallbacks();
                     }
 
                     callback(false);

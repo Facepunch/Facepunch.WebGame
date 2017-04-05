@@ -1,6 +1,7 @@
 namespace Facepunch {
     export interface ILoadable {
         loadNext(callback: (requeue: boolean) => void): void;
+        getLoadPriority(): number;
     }
 
     export interface ILoader {
@@ -46,23 +47,25 @@ namespace Facepunch {
 
         protected abstract onCreateItem(url: string): TLoadable;
 
-        protected onComparePriority(a: TLoadable, b: TLoadable): number { return 0; }
-
         protected onFinishedLoadStep(item: TLoadable): void { }
 
         private getNextToLoad(): TLoadable {
             if (this.queue.length <= 0) return null;
 
-            let bestIndex = 0;
+            let bestIndex = -1;
             let bestItem = this.queue[0];
+            let bestPriority = 0;
 
-            for (var i = 1, iEnd = this.queue.length; i < iEnd; ++i) {
+            for (var i = 0, iEnd = this.queue.length; i < iEnd; ++i) {
                 const item = this.queue[i];
-                if (this.onComparePriority(bestItem, item) < 0) continue;
+                const priority = item.getLoadPriority();
+                if (priority <= bestPriority) continue;
 
                 bestIndex = i;
                 bestItem = item;
             }
+
+            if (bestIndex === -1) return null;
 
             return this.queue.splice(bestIndex, 1)[0];
         }

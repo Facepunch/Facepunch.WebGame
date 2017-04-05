@@ -593,8 +593,9 @@ namespace Facepunch {
             }
 
             getLoadPriority(): number {
-                if (this.info == null || this.nextElement >= this.info.elements.length) return 0;
-                return 16 - this.info.elements[this.nextElement].level;
+                if (super.getLoadPriority() === 0) return 0;
+                if (this.info == null || this.nextElement >= this.info.elements.length) return 256;
+                return this.info.elements[this.nextElement].level + 1;
             }
 
             private canLoadImmediately(index: number): boolean {

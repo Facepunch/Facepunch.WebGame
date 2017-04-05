@@ -6,6 +6,10 @@ namespace Facepunch {
 
             abstract isLoaded(): boolean;
 
+            getLoadPriority(): number {
+                return this.getVisibleUsageCount();
+            }
+
             addUsage(drawable: IDrawListItem): void {
                 this.usages.push(drawable);
             }
@@ -13,6 +17,14 @@ namespace Facepunch {
             removeUsage(drawable: IDrawListItem): void {
                 const index = this.usages.indexOf(drawable);
                 if (index !== -1) this.usages.splice(index, 1);
+            }
+
+            getVisibleUsageCount(): number {
+                let count = 0;
+                for (let i = 0, iEnd = this.usages.length; i < iEnd; ++i) {
+                    count += this.usages[i].getIsVisible() ? 1 : 0;
+                }
+                return count;
             }
 
             addOnLoadCallback(callback: (resource: TResource) => void): void {
