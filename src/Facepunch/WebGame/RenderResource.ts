@@ -17,11 +17,15 @@ namespace Facepunch {
             }
 
             addDependent(dependent: IRenderResource): void {
+                const index = this.dependents.indexOf(dependent);
+                if (index !== -1) return;
                 this.dependents.push(dependent);
                 this.addOnLoadCallback(res => dependent.onDependencyLoaded(res));
             }
 
             addUsage(drawable: IDrawListItem): void {
+                const index = this.usages.indexOf(drawable);
+                if (index !== -1) return;
                 this.usages.push(drawable);
             }
 

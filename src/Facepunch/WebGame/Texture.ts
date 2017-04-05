@@ -649,14 +649,14 @@ namespace Facepunch {
                 const r = color.r;
                 const g = color.g;
                 const b = color.b;
-                const a = color.a == undefined ? 255 : color.a;
+                const a = color.a == undefined ? 1 : color.a;
 
                 for (let i = 0; i < pixelCount; ++i) {
                     const index = i * 4;
-                    values[index + 0] = r;
-                    values[index + 1] = g;
-                    values[index + 2] = b;
-                    values[index + 3] = a;
+                    values[index + 0] = Math.round(r * 255);
+                    values[index + 1] = Math.round(g * 255);
+                    values[index + 2] = Math.round(b * 255);
+                    values[index + 3] = Math.round(a * 255);
                 }
 
                 const gl = this.context;

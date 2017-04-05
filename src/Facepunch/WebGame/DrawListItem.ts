@@ -18,6 +18,12 @@ namespace Facepunch {
             private readonly drawLists: DrawList[] = [];
 
             clearMeshHandles(): void {
+                for (let i = 0, iEnd = this.meshHandles.length; i < iEnd; ++i) {
+                    const handle = this.meshHandles[i];
+                    if (handle.material == null) continue;
+                    handle.material.removeUsage(this);
+                }
+
                 this.meshHandles = null;
                 this.invalidateDrawLists();
             }
@@ -26,7 +32,12 @@ namespace Facepunch {
                 if (this.meshHandles == null) this.meshHandles = [];
 
                 for (let i = 0, iEnd = handles.length; i < iEnd; ++i) {
-                    this.meshHandles.push(handles[i].clone(!this.isStatic && this.entity != null ? this.entity.getMatrix() : null));
+                    const handle = handles[i].clone(!this.isStatic && this.entity != null ? this.entity.getMatrix() : null);
+                    this.meshHandles.push(handle);
+
+                    if (handle.material != null) {
+                        handle.material.addUsage(this);
+                    }
                 }
 
                 this.invalidateDrawLists();

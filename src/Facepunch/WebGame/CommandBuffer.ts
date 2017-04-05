@@ -119,7 +119,9 @@ namespace Facepunch {
                     if (command.parameter !== undefined && command.parameters !== undefined) {
                         const value = command.parameters[command.parameter.id];
 
-                        if ((value as Float32Array).length !== undefined) {
+                        if (value === undefined) {
+                            params.push("undefined");
+                        } else if ((value as Float32Array).length !== undefined) {
                             params.push(`[${value}]`);
                         } else {
                             params.push(value.toString());
