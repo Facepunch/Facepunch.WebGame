@@ -64,7 +64,8 @@ namespace Facepunch {
 
                     for (let i = 0, iEnd = info.materials.length; i < iEnd; ++i) {
                         const matUrl = Http.getAbsUrl(info.materials[i], this.url);
-                        materials[i] = this.materialLoader.load(matUrl);
+                        const mat = materials[i] = this.materialLoader.load(matUrl);
+                        mat.addDependent(this);
                     }
 
                     this.materials = materials;
