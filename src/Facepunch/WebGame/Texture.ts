@@ -596,7 +596,7 @@ namespace Facepunch {
 
             getLoadPriority(): number {
                 if (super.getLoadPriority() === 0) return 0;
-                if (this.info == null) return 256;
+                if (this.info == null || this.nextElement >= this.info.elements.length) return 256;
                 const elems = this.info.elements;
                 return (elems[this.nextElement].level + 1) / (elems[0].level + 1);
             }
