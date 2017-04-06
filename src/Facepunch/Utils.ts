@@ -32,7 +32,7 @@ namespace Facepunch {
         }
 
         static isAbsUrl(url: string): boolean {
-            return /^(http[s]:\/)?\//i.test(url);
+            return url != null && /^(http[s]:\/)?\//i.test(url);
         }
 
         static getAbsUrl(url: string, relativeTo: string): string {

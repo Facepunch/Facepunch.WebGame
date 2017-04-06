@@ -5,13 +5,16 @@ namespace Facepunch {
         export enum MaterialPropertyType {
             Boolean = 1,
             Number = 2,
-            TextureUrl = 3
+            Color = 3,
+            TextureUrl = 4,
+            TextureIndex = 5,
+            TextureInfo = 6
         }
 
         export interface IMaterialProperty {
             type: MaterialPropertyType;
             name: string;
-            value: boolean | number | string;
+            value: boolean | number | string | ITextureInfo;
         }
         
         export interface IMaterialInfo {
@@ -49,10 +52,14 @@ namespace Facepunch {
         }
 
         export class MaterialLoadable extends Material implements ILoadable {
+            private static nextDummyId = 0;
+
             private readonly game: Game;
             private readonly url: string;
 
-            constructor(game: Game, url: string) {
+            private textureSource: (index: number) => Texture;
+
+            constructor(game: Game, url?: string) {
                 super();
 
                 this.game = game;
@@ -62,14 +69,54 @@ namespace Facepunch {
             private addPropertyFromInfo(info: IMaterialProperty): void {
                 switch (info.type) {
                     case MaterialPropertyType.Boolean:
-                    case MaterialPropertyType.Number:
+                    case MaterialPropertyType.Number: {
                         this.properties[info.name] = info.value as boolean | number;
                         break;
-                    case MaterialPropertyType.TextureUrl:
+                    }
+                    case MaterialPropertyType.TextureUrl: {
                         const texUrl = Http.getAbsUrl(info.value as string, this.url);
                         const tex = this.properties[info.name] = this.game.textureLoader.load(texUrl);
                         tex.addDependent(this);
                         break;
+                    }
+                    case MaterialPropertyType.TextureIndex: {
+                        if (this.textureSource == null) {
+                            console.warn("No texture source provided for material.");
+                            break;
+                        }
+
+                        const tex = this.properties[info.name] = this.textureSource(info.value as number);
+                        tex.addDependent(this);
+                        break;
+                    }
+                    case MaterialPropertyType.TextureInfo: {
+                        const texInfo = info.value as ITextureInfo;
+                        const tex = this.properties[info.name] = texInfo.path != null
+                            ? this.game.textureLoader.load(texInfo.path)
+                            : this.game.textureLoader.load(`__dummy_${MaterialLoadable.nextDummyId++}`);
+
+                        tex.addDependent(this);
+                        tex.loadFromInfo(texInfo);
+                    }
+                }
+            }
+
+            loadFromInfo(info: IMaterialInfo, textureSource?: (index: number) => Texture): void {
+                this.program = this.game.shaders.get(info.shader);
+                this.textureSource = textureSource;
+
+                if (this.program != null) {
+                    this.properties = this.program.createMaterialProperties();
+
+                    for (let i = 0; i < info.properties.length; ++i) {
+                        this.addPropertyFromInfo(info.properties[i]);
+                    }
+                } else {
+                    this.properties = {};
+                }
+
+                if (this.program != null) {
+                    this.dispatchOnLoadCallbacks();
                 }
             }
             
@@ -80,22 +127,7 @@ namespace Facepunch {
                 }
 
                 Http.getJson<IMaterialInfo>(this.url, info => {
-                    this.program = this.game.shaders.get(info.shader);
-
-                    if (this.program != null) {
-                        this.properties = this.program.createMaterialProperties();
-
-                        for (let i = 0; i < info.properties.length; ++i) {
-                            this.addPropertyFromInfo(info.properties[i]);
-                        }
-                    } else {
-                        this.properties = {};
-                    }
-
-                    if (this.program != null) {
-                        this.dispatchOnLoadCallbacks();
-                    }
-
+                    this.loadFromInfo(info);
                     callback(false);
                 }, error => {
                     callback(false);

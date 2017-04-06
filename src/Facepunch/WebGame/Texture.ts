@@ -512,7 +512,8 @@ namespace Facepunch {
         }
 
         export interface ITextureInfo {
-            target: TextureTarget | string,
+            path?: string;
+            target: TextureTarget | string;
             width?: number;
             height?: number;
             params: ITextureParameters,
@@ -521,7 +522,8 @@ namespace Facepunch {
 
         export class TextureLoadable extends Texture implements ILoadable {
             private readonly context: WebGLRenderingContext;
-            private readonly url: string;            
+            
+            readonly url: string;
 
             private info: ITextureInfo;
             private nextElement = 0;
@@ -540,7 +542,7 @@ namespace Facepunch {
                 this.url = url;
 
                 if (/\.(png|jpe?g)$/i.test(this.url)) {
-                    this.onLoadInfo({
+                    this.loadFromInfo({
                         target: TextureTarget.Texture2D,
                         params: {
                             filter: TextureFilter.Linear,
@@ -723,7 +725,7 @@ namespace Facepunch {
                 return success;
             }
 
-            private onLoadInfo(info: ITextureInfo): void {
+            loadFromInfo(info: ITextureInfo): void {
                 this.info = info;
                 this.target = WebGl.decodeConst(info.target);
 
@@ -737,7 +739,7 @@ namespace Facepunch {
             loadNext(callback: (requeue: boolean) => void): void {
                 if (this.info == null) {
                     Http.getJson<ITextureInfo>(this.url, info => {
-                        this.onLoadInfo(info);
+                        this.loadFromInfo(info);
                         callback(info.elements != null && this.nextElement < info.elements.length);
                     }, error => {
                         callback(false);
