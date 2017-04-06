@@ -63,6 +63,7 @@ namespace Facepunch {
 
                 bestIndex = i;
                 bestItem = item;
+                bestPriority = priority;
             }
 
             if (bestIndex === -1) return null;

@@ -98,7 +98,6 @@ namespace Facepunch {
 
                     callback(false);
                 }, error => {
-                    console.error(`Failed to load material ${this.url}: ${error}`);
                     callback(false);
                 });
             }

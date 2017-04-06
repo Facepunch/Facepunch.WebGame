@@ -13,6 +13,7 @@ namespace Facepunch {
             static readonly uv2 = new VertexAttribute(2, AttributeType.Float, false);
             static readonly rgb = new VertexAttribute(3, AttributeType.Float, false);
             static readonly rgba = new VertexAttribute(4, AttributeType.Float, false);
+            static readonly alpha = new VertexAttribute(1, AttributeType.Float, false);
 
             static compare(a: VertexAttribute, b: VertexAttribute): number {
                 return a.id - b.id;

@@ -594,8 +594,9 @@ namespace Facepunch {
 
             getLoadPriority(): number {
                 if (super.getLoadPriority() === 0) return 0;
-                if (this.info == null || this.nextElement >= this.info.elements.length) return 256;
-                return this.info.elements[this.nextElement].level + 1;
+                if (this.info == null) return 256;
+                const elems = this.info.elements;
+                return (elems[this.nextElement].level + 1) / (elems[0].level + 1);
             }
 
             private canLoadImmediately(index: number): boolean {
@@ -635,8 +636,8 @@ namespace Facepunch {
             private static pixelBuffer: Uint8Array;
 
             private loadColorElement(target: TextureTarget, level: number, color: IColor): boolean {
-                const width = this.info.width >> level;
-                const height = this.info.height >> level;
+                const width = Math.max(1, this.info.width >> level);
+                const height = Math.max(1, this.info.height >> level);
 
                 const pixelCount = width * height;
                 const valuesSize = pixelCount * 4;
@@ -739,7 +740,6 @@ namespace Facepunch {
                         this.onLoadInfo(info);
                         callback(info.elements != null && this.nextElement < info.elements.length);
                     }, error => {
-                        console.error(`Failed to load texture ${this.url}: ${error}`);
                         callback(false);
                     });
                     return;
