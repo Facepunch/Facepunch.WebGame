@@ -30,7 +30,7 @@ namespace Facepunch {
                 const Type: IProgramCtor = target;
                 if (Type === undefined) {
                     console.warn(`Unknown shader name '${name}'.`);
-                    return this.namedPrograms[name] = this.getFromCtor(Shaders.Error);
+                    return this.namedPrograms[name] = null;
                 }
                 return this.namedPrograms[name] = this.getFromCtor(Type);
             }

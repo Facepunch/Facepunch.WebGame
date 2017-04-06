@@ -9,6 +9,8 @@ namespace Facepunch {
         export class MeshHandle {
             static readonly undefinedHandle = new MeshHandle(undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
+            program: ShaderProgram;
+
             readonly transform: Matrix4;
             readonly material: Material;
             readonly group: MeshGroup;
@@ -35,8 +37,8 @@ namespace Facepunch {
             }
 
             compareTo(other: MeshHandle): number {
-                const thisProg = this.material.program;
-                const otherProg = other.material.program;
+                const thisProg = this.program;
+                const otherProg = other.program;
 
                 const progComp = thisProg.compareTo(otherProg);
                 if (progComp !== 0) return progComp;

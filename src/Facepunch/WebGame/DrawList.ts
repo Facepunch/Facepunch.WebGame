@@ -12,6 +12,7 @@ namespace Facepunch {
             private translucent: MeshHandle[] = [];
 
             private lastHandle: MeshHandle;
+            private lastProgram: ShaderProgram;
             private hasRefraction: boolean;
 
             constructor(context: RenderContext) {
@@ -66,7 +67,7 @@ namespace Facepunch {
                 let changedProgram = false;
                 let changedTransform = false;
 
-                const program = handle.material.program;
+                let program = handle.program;
 
                 if (this.lastHandle.transform !== handle.transform) {
                     changedTransform = true;
@@ -74,13 +75,13 @@ namespace Facepunch {
 
                 if (this.lastHandle.material !== handle.material) {
                     changedMaterial = true;
-                    changedProgram = this.lastHandle.material === undefined || this.lastHandle.material.program !== program;
+                    changedProgram = this.lastProgram !== program;
                     changedTransform = changedTransform || changedProgram;
                 }
 
                 if (changedProgram) {
-                    if (this.lastHandle.material !== undefined) {
-                        this.lastHandle.material.program.bufferDisableAttributes(buf);
+                    if (this.lastProgram !== undefined) {
+                        this.lastProgram.bufferDisableAttributes(buf);
                     }
 
                     program.bufferSetup(buf);
@@ -99,13 +100,14 @@ namespace Facepunch {
                     handle.group.bufferBindBuffers(buf, program);
                 }
 
-                if (this.lastHandle.vertexOffset !== handle.vertexOffset) {
+                if (this.lastHandle.vertexOffset !== handle.vertexOffset || changedProgram) {
                     handle.group.bufferAttribPointers(buf, program, handle.vertexOffset);
                 }
 
                 handle.group.bufferRenderElements(buf, handle.drawMode, handle.indexOffset, handle.indexCount);
 
                 this.lastHandle = handle;
+                this.lastProgram = program;
             }
 
             private static compareHandles(a: MeshHandle, b: MeshHandle): number {
@@ -116,6 +118,8 @@ namespace Facepunch {
                 this.opaque = [];
                 this.translucent = [];
                 this.hasRefraction = false;
+
+                const errorProgram = this.game.shaders.get(Shaders.Error);
 
                 this.isBuildingList = true;
 
@@ -128,8 +132,12 @@ namespace Facepunch {
                         if (handle.indexCount === 0) continue;
                         if (handle.material == null) continue;
                         if (!handle.material.enabled) continue;
-                        if (handle.material.program == null) continue;
-                        if (!handle.material.program.isCompiled()) continue;
+
+                        handle.program = handle.material.program;
+
+                        if (handle.program == null || !handle.program.isCompiled()) {
+                            handle.program = errorProgram;
+                        }
 
                         if (handle.material.properties.translucent || handle.material.properties.refract) {
                             if (handle.material.properties.refract) this.hasRefraction = true;
@@ -148,6 +156,7 @@ namespace Facepunch {
 
             appendToBuffer(buf: CommandBuffer, context: RenderContext): void {
                 this.lastHandle = MeshHandle.undefinedHandle;
+                this.lastProgram = undefined;
 
                 if (this.invalid) this.buildHandleList();
 
@@ -168,8 +177,9 @@ namespace Facepunch {
                     this.bufferHandle(buf, this.translucent[i]);
                 }
 
-                if (this.lastHandle.material !== undefined) {
-                    this.lastHandle.material.program.bufferDisableAttributes(buf);
+                if (this.lastProgram !== undefined) {
+                    this.lastProgram.bufferDisableAttributes(buf);
+                    this.lastProgram = undefined;
                     buf.useProgram(null);
                 }
             }

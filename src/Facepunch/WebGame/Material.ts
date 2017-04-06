@@ -81,10 +81,15 @@ namespace Facepunch {
 
                 Http.getJson<IMaterialInfo>(this.url, info => {
                     this.program = this.game.shaders.get(info.shader);
-                    this.properties = this.program.createMaterialProperties();
 
-                    for (let i = 0; i < info.properties.length; ++i) {
-                        this.addPropertyFromInfo(info.properties[i]);
+                    if (this.program != null) {
+                        this.properties = this.program.createMaterialProperties();
+
+                        for (let i = 0; i < info.properties.length; ++i) {
+                            this.addPropertyFromInfo(info.properties[i]);
+                        }
+                    } else {
+                        this.properties = {};
                     }
 
                     if (this.program != null) {
