@@ -66,11 +66,21 @@ namespace Facepunch {
                 let changedMaterial = false;
                 let changedProgram = false;
                 let changedTransform = false;
+                let changedBuffer = false;
+                let changedAttributes = false;
 
                 let program = handle.program;
 
                 if (this.lastHandle.transform !== handle.transform) {
                     changedTransform = true;
+                }
+
+                if (this.lastHandle.group !== handle.group) {
+                    changedBuffer = true;
+                }
+
+                if (this.lastHandle.vertexOffset !== handle.vertexOffset) {
+                    changedAttributes = true;
                 }
 
                 if (this.lastHandle.material !== handle.material) {
@@ -80,6 +90,8 @@ namespace Facepunch {
                 }
 
                 if (changedProgram) {
+                    changedBuffer = true;
+
                     if (this.lastProgram !== undefined) {
                         this.lastProgram.bufferDisableAttributes(buf);
                     }
@@ -96,11 +108,12 @@ namespace Facepunch {
                         ? DrawList.identityMatrix.elements : handle.transform.elements );
                 }
 
-                if (this.lastHandle.group !== handle.group || changedProgram) {
+                if (changedBuffer) {
+                    changedAttributes = true;
                     handle.group.bufferBindBuffers(buf, program);
                 }
 
-                if (this.lastHandle.vertexOffset !== handle.vertexOffset || changedProgram) {
+                if (changedAttributes) {
                     handle.group.bufferAttribPointers(buf, program, handle.vertexOffset);
                 }
 
