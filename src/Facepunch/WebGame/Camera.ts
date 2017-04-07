@@ -178,16 +178,32 @@ namespace Facepunch {
                 this.far = far;
             }
 
-            setFov(value: number): void { this.fov = value; this.invalidateProjectionMatrix(); }
+            setFov(value: number): void {
+                if (value === this.fov) return;
+                this.fov = value;
+                this.invalidateProjectionMatrix();
+            }
             getFov(): number { return this.fov; }
 
-            setAspect(value: number): void { this.aspect = value; this.invalidateProjectionMatrix(); }
+            setAspect(value: number): void {
+                if (value === this.aspect) return;
+                this.aspect = value;
+                this.invalidateProjectionMatrix();
+            }
             getAspect(): number { return this.aspect; }
 
-            setNear(value: number): void { this.near = value; this.invalidateProjectionMatrix(); }
+            setNear(value: number): void {
+                if (value === this.near) return;
+                this.near = value;
+                this.invalidateProjectionMatrix();
+            }
             getNear(): number { return this.near; }
 
-            setFar(value: number): void { this.far = value; this.invalidateProjectionMatrix(); }
+            setFar(value: number): void {
+                if (value === this.far) return;
+                this.far = value;
+                this.invalidateProjectionMatrix();
+            }
             getFar(): number { return this.far; }
 
             protected onUpdateProjectionMatrix(matrix: Matrix4): void {
