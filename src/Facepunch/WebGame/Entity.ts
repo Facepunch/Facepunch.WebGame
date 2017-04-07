@@ -22,9 +22,21 @@ namespace Facepunch {
                 return this.id - other.id;
             }
 
-            private invalidateMatrices(): void {
+            invalidateMatrices(): void {
                 this.matrixInvalid = true;
                 this.inverseMatrixInvalid = true;
+            }
+
+            protected onChangePosition(): void {
+                this.invalidateMatrices();
+            }
+
+            protected onChangeRotation(): void {
+                this.invalidateMatrices();
+            }
+
+            protected onChangeScale(): void {
+                this.invalidateMatrices();
             }
 
             getMatrix(target?: Matrix4): Matrix4 {
@@ -67,7 +79,7 @@ namespace Facepunch {
                     const value = valueOrX as IVector3;
                     this.position.set(value.x, value.y, value.z);
                 }
-                this.invalidateMatrices();
+                this.onChangePosition();
             }
 
             getPosition(target: IVector3): IVector3 {
@@ -98,7 +110,7 @@ namespace Facepunch {
                 } else {
                     this.position.add(valueOrX);
                 }
-                this.invalidateMatrices();
+                this.onChangePosition();
             }
 
             easeTo(goal: IVector3, delta: number): void {
@@ -109,7 +121,7 @@ namespace Facepunch {
 
             setRotation(value: Quaternion): void {
                 this.rotation.copy(value);
-                this.invalidateMatrices();
+                this.onChangeRotation();
             }
 
             private static tempEuler = new Euler(0, 0, 0, AxisOrder.Zyx);
@@ -148,7 +160,7 @@ namespace Facepunch {
                 } else {
                     this.scale.set(value.x, value.y, value.z);
                 }
-                this.invalidateMatrices();
+                this.onChangeScale();
             }
         }
     }
