@@ -3,9 +3,6 @@ namespace Facepunch {
         export class DrawList {
             private static readonly identityMatrix = new Matrix4().setIdentity();
 
-            readonly context: RenderContext;
-            readonly game: Game;
-
             private items: IDrawListItem[] = [];
             private invalid: boolean;
             private opaque: MeshHandle[] = [];
@@ -14,11 +11,6 @@ namespace Facepunch {
             private lastHandle: MeshHandle;
             private lastProgram: ShaderProgram;
             private hasRefraction: boolean;
-
-            constructor(context: RenderContext) {
-                this.context = context;
-                this.game = context.game;
-            }
 
             isInvalid(): boolean {
                 return this.invalid;
@@ -32,10 +24,6 @@ namespace Facepunch {
                 this.items = [];
                 this.opaque = [];
                 this.translucent = [];
-            }
-
-            getDrawCalls(): number {
-                return this.opaque.length + this.translucent.length;
             }
 
             addItem(item: IDrawListItem): void {
@@ -127,12 +115,12 @@ namespace Facepunch {
                 return a.compareTo(b);
             }
 
-            private buildHandleList(): void {
+            private buildHandleList(shaders: ShaderManager): void {
                 this.opaque = [];
                 this.translucent = [];
                 this.hasRefraction = false;
 
-                const errorProgram = this.game.shaders.get(Shaders.Error);
+                const errorProgram = shaders.get(Shaders.Error);
 
                 this.isBuildingList = true;
 
@@ -167,23 +155,23 @@ namespace Facepunch {
                 this.invalid = false;
             }
 
-            appendToBuffer(buf: CommandBuffer, context: RenderContext): void {
+            appendToBuffer(buf: CommandBuffer, camera: Camera): void {
                 this.lastHandle = MeshHandle.undefinedHandle;
                 this.lastProgram = undefined;
 
-                if (this.invalid) this.buildHandleList();
+                if (this.invalid) this.buildHandleList(camera.game.shaders);
 
-                this.game.shaders.resetUniformCache();
+                camera.game.shaders.resetUniformCache();
 
-                if (this.hasRefraction) context.bufferOpaqueTargetBegin(buf);
+                if (this.hasRefraction) camera.bufferOpaqueTargetBegin(buf);
 
                 for (let i = 0, iEnd = this.opaque.length; i < iEnd; ++i) {
                     this.bufferHandle(buf, this.opaque[i]);
                 }
 
                 if (this.hasRefraction) {
-                    context.bufferRenderTargetEnd(buf);
-                    this.bufferHandle(buf, this.game.meshes.getComposeFrameMeshHandle());
+                    camera.bufferRenderTargetEnd(buf);
+                    this.bufferHandle(buf, camera.game.meshes.getComposeFrameMeshHandle());
                 }
 
                 for (let i = 0, iEnd = this.translucent.length; i < iEnd; ++i) {

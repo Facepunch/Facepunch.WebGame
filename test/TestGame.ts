@@ -4,7 +4,6 @@ import WebGame = Facepunch.WebGame;
 
 class TestGame extends WebGame.Game {
     private mainCamera: WebGame.PerspectiveCamera;
-    private mainRenderContext: WebGame.RenderContext;
 
     private testObjects: WebGame.StaticProp[];
 
@@ -15,12 +14,11 @@ class TestGame extends WebGame.Game {
 
         this.canLockPointer = true;
 
-        this.mainCamera = new WebGame.PerspectiveCamera(75, this.getWidth() / this.getHeight(), 1, 8192);
-        this.mainRenderContext = new WebGame.RenderContext(this);
-        this.mainRenderContext.fog.maxDensity = 0.825;
-        this.mainRenderContext.fog.start = 64;
-        this.mainRenderContext.fog.end = 2048;
-        this.mainRenderContext.fog.color.set(0.675, 0.75, 0.5);
+        this.mainCamera = new WebGame.PerspectiveCamera(this, 75, this.getWidth() / this.getHeight(), 1, 8192);
+        this.mainCamera.fog.maxDensity = 0.825;
+        this.mainCamera.fog.start = 64;
+        this.mainCamera.fog.end = 2048;
+        this.mainCamera.fog.color.set(0.675, 0.75, 0.5);
 
         this.mainCamera.setPosition(0, 128, 64);
 
@@ -122,7 +120,7 @@ class TestGame extends WebGame.Game {
         gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
         gl.cullFace(gl.FRONT);
 
-        this.mainRenderContext.render(this.mainCamera);
+        this.mainCamera.render();
     }
 
     populateDrawList(drawList: WebGame.DrawList, camera: WebGame.Camera): void {

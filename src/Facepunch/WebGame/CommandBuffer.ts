@@ -14,7 +14,6 @@ namespace Facepunch {
             texture?: Texture;
             transpose?: boolean;
             values?: Float32Array;
-            context?: RenderContext;
             cap?: number;
             enabled?: boolean;
             buffer?: WebGLBuffer;
@@ -71,6 +70,7 @@ namespace Facepunch {
             private parameters: { [param: number]: Float32Array | Texture } = {};
 
             private lastCommand: ICommandBufferItem;
+            private drawCalls = 0;
 
             readonly immediate: boolean;
 
@@ -142,6 +142,11 @@ namespace Facepunch {
                 this.capStates = {};
                 this.commands = [];
                 this.lastCommand = null;
+                this.drawCalls = 0;
+            }
+
+            getDrawCalls(): number {
+                return this.drawCalls;
             }
 
             setParameter(param: CommandBufferParameter, value: Float32Array | Texture): void {
@@ -389,6 +394,8 @@ namespace Facepunch {
                     this.lastCommand.count += count;
                     return;
                 }
+
+                this.drawCalls += 1;
 
                 this.push(this.onDrawElements, { mode: mode, count: count, type: type, offset: offset });
             }

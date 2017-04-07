@@ -10,11 +10,94 @@ namespace Facepunch {
             static readonly inverseProjectionMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
             static readonly viewMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
             static readonly inverseViewMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
+            static readonly opaqueColorParam = new CommandBufferParameter(UniformType.Texture);
+            static readonly opaqueDepthParam = new CommandBufferParameter(UniformType.Texture);
+
+            private readonly drawList = new DrawList();
+            private readonly commandBuffer: CommandBuffer;
+            private opaqueFrameBuffer: FrameBuffer;
+            
+            private geometryInvalid = true;
+            
+            readonly game: Game;
+            readonly fog = new Fog();
 
             private projectionInvalid = true;
             private projectionMatrix = new Matrix4();
             private inverseProjectionInvalid = true;
             private inverseProjectionMatrix = new Matrix4();
+
+            constructor(game: Game) {
+                super();
+
+                this.game = game;
+                this.commandBuffer = new CommandBuffer(game.context);
+            
+                game.addDrawListInvalidationHandler((geom: boolean) => {
+                    if (geom) this.invalidateGeometry();
+                    this.drawList.invalidate();
+                });
+            }
+
+            getOpaqueColorTexture(): RenderTexture {
+                return this.opaqueFrameBuffer == null ? null : this.opaqueFrameBuffer.getColorTexture();
+            }
+
+            getOpaqueDepthTexture(): RenderTexture {
+                return this.opaqueFrameBuffer == null ? null : this.opaqueFrameBuffer.getDepthTexture();
+            }
+
+            invalidateGeometry(): void {
+                this.geometryInvalid = true;
+            }
+
+            render(): void {
+                if (this.geometryInvalid) {
+                    this.drawList.clear();
+                    this.game.populateDrawList(this.drawList, this);
+                }
+
+                if (this.geometryInvalid || this.drawList.isInvalid()) {
+                    this.commandBuffer.clearCommands();
+                    this.drawList.appendToBuffer(this.commandBuffer, this);
+                }
+                
+                this.geometryInvalid = false;
+
+                this.populateCommandBufferParameters(this.commandBuffer);
+
+                this.commandBuffer.run();
+            }
+            
+            private setupFrameBuffers(): void {
+                if (this.opaqueFrameBuffer !== undefined) return;
+
+                const gl = this.game.context;
+
+                const width = this.game.getWidth();
+                const height = this.game.getHeight();
+
+                this.opaqueFrameBuffer = new FrameBuffer(gl, width, height);
+                this.opaqueFrameBuffer.addDepthAttachment();
+            }
+
+            bufferOpaqueTargetBegin(buf: CommandBuffer): void {
+                this.setupFrameBuffers();
+
+                const gl = WebGLRenderingContext;
+
+                buf.bindFramebuffer(this.opaqueFrameBuffer, true);
+                buf.depthMask(true);
+                buf.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+            }
+
+            bufferRenderTargetEnd(buf: CommandBuffer): void {
+                buf.bindFramebuffer(null);
+            }
+
+            getDrawCalls(): number {
+                return this.commandBuffer.getDrawCalls();
+            }
 
             abstract getNear(): number;
             abstract getFar(): number;
@@ -71,6 +154,12 @@ namespace Facepunch {
                 buf.setParameter(Camera.inverseProjectionMatrixParam, this.getInverseProjectionMatrix().elements);
                 buf.setParameter(Camera.viewMatrixParam, this.getInverseMatrix().elements);
                 buf.setParameter(Camera.inverseViewMatrixParam, this.getMatrix().elements);
+                
+                buf.setParameter(Camera.opaqueColorParam, this.getOpaqueColorTexture());
+                buf.setParameter(Camera.opaqueDepthParam, this.getOpaqueDepthTexture());
+                
+                this.game.populateCommandBufferParameters(buf);
+                this.fog.populateCommandBufferParameters(buf);
             }
         }
 
@@ -80,8 +169,8 @@ namespace Facepunch {
             private near: number;
             private far: number;
 
-            constructor(fov: number, aspect: number, near: number, far: number) {
-                super();
+            constructor(game: Game, fov: number, aspect: number, near: number, far: number) {
+                super(game);
 
                 this.fov = fov;
                 this.aspect = aspect;

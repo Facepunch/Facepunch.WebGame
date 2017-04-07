@@ -4,8 +4,6 @@ namespace Facepunch {
             static readonly fogColorParam = new CommandBufferParameter(UniformType.Float3);
             static readonly fogInfoParam = new CommandBufferParameter(UniformType.Float4);
 
-            private readonly renderContext: RenderContext;
-
             start = 0;
             end = 8192;
             maxDensity = 0;
@@ -14,11 +12,7 @@ namespace Facepunch {
 
             private readonly colorValues = new Float32Array(3);
             private readonly paramsValues = new Float32Array(4);
-
-            constructor(context: RenderContext) {
-                this.renderContext = context;
-            }
-
+            
             populateCommandBufferParameters(buf: CommandBuffer): void {
                 this.colorValues[0] = this.color.x;
                 this.colorValues[1] = this.color.y;

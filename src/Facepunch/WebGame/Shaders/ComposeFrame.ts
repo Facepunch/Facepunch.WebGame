@@ -51,8 +51,8 @@ namespace Facepunch {
                 bufferSetup(buf: CommandBuffer): void {
                     super.bufferSetup(buf);
 
-                    this.frameColor.bufferParameter(buf, RenderContext.opaqueColorParam);
-                    this.frameDepth.bufferParameter(buf, RenderContext.opaqueDepthParam);
+                    this.frameColor.bufferParameter(buf, Camera.opaqueColorParam);
+                    this.frameDepth.bufferParameter(buf, Camera.opaqueDepthParam);
                 }
             }
         }
