@@ -7,7 +7,7 @@ namespace Facepunch {
         export abstract class Uniform {
             protected readonly context: WebGLRenderingContext;
 
-            private program: ShaderProgram;
+            protected readonly program: ShaderProgram;
             private name: string;
             private location: WebGLUniformLocation;
 
@@ -160,6 +160,7 @@ namespace Facepunch {
             private default: Texture;
 
             private texUnit: number;
+            private sizeUniform: Uniform4F;
 
             constructor(program: ShaderProgram, name: string) {
                 super(program, name);
@@ -167,6 +168,15 @@ namespace Facepunch {
                 this.isSampler = true;
 
                 this.texUnit = program.reserveNextTextureUnit();
+            }
+
+            getSizeUniform(): Uniform4F {
+                if (this.sizeUniform != null) return this.sizeUniform;
+                return this.sizeUniform = this.program.addUniform(`${this}_Size`, Uniform4F);
+            }
+
+            hasSizeUniform(): boolean {
+                return this.sizeUniform != null;
             }
 
             getTexUnit(): number {
@@ -193,6 +203,14 @@ namespace Facepunch {
                     this.value = this.texUnit;
                     buf.setUniform1I(this, this.texUnit);
                 }
+
+                if (this.sizeUniform == null) return;
+
+                if (tex != null) {
+                    buf.setUniformTextureSize(this.sizeUniform, tex);
+                } else {
+                    this.sizeUniform.bufferValue(buf, 1, 1, 1, 1);
+                }
             }
 
             set(tex: Texture): void {
@@ -203,6 +221,11 @@ namespace Facepunch {
                 this.context.activeTexture(this.context.TEXTURE0 + this.texUnit);
                 this.context.bindTexture(tex.getTarget(), tex.getHandle());
                 this.context.uniform1i(this.getLocation(), this.texUnit);
+                
+                const width = tex.getWidth(0);
+                const height = tex.getHeight(0);
+
+                this.sizeUniform.set(width, height, 1 / width, 1 / height);
             }
         }
 

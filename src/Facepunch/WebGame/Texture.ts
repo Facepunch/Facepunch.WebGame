@@ -535,6 +535,9 @@ namespace Facepunch {
             private filter: TextureFilter;
             private mipmap: boolean;
 
+            private level0Width: number;
+            private level0Height: number;
+
             constructor(context: WebGLRenderingContext, url: string) {
                 super();
 
@@ -568,11 +571,13 @@ namespace Facepunch {
             }
 
             getWidth(level: number): number {
+                if (level === 0) return this.level0Width;
                 if (this.info == null) return undefined;
                 return this.info.width >> level;
             }
 
             getHeight(level: number): number {
+                if (level === 0) return this.level0Height;
                 if (this.info == null) return undefined;
                 return this.info.height >> level;
             }
@@ -669,6 +674,9 @@ namespace Facepunch {
                     gl.texImage2D(target, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, values);
                 }
 
+                this.level0Width = width;
+                this.level0Height = height;
+
                 return true;
             }
 
@@ -682,6 +690,9 @@ namespace Facepunch {
                     this.info.width = image.width;
                     this.info.height = image.height;
                 }
+                
+                this.level0Width = image.width;
+                this.level0Height = image.height;
 
                 return true;
             }

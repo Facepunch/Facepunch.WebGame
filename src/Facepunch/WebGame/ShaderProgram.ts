@@ -89,11 +89,11 @@ namespace Facepunch {
                 return this.compiled;
             }
 
-            protected addAttribute(name: string, attrib: VertexAttribute): void {
+            addAttribute(name: string, attrib: VertexAttribute): void {
                 this.attribNames[name] = attrib;
             }
 
-            protected addUniform<TUniform extends Uniform>(name: string, ctor: IUniformCtor<TUniform>): TUniform {
+            addUniform<TUniform extends Uniform>(name: string, ctor: IUniformCtor<TUniform>): TUniform {
                 const uniform = new ctor(this, name);
                 this.uniforms.push(uniform);
                 return uniform;

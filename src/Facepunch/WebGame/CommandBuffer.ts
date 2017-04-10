@@ -273,9 +273,21 @@ namespace Facepunch {
                     break;
                 case UniformType.Texture:
                     const tex = value as Texture;
+                    const uniform = args.uniform as UniformSampler;
 
                     gl.activeTexture(gl.TEXTURE0 + args.unit);
                     gl.bindTexture(tex.getTarget(), tex.getHandle());
+
+                    if (!uniform.hasSizeUniform()) break;
+
+                    if (tex != null) {
+                        const width = tex.getWidth(0);
+                        const height = tex.getHeight(0);
+                        gl.uniform4f(uniform.getSizeUniform().getLocation(), width, height, 1 / width, 1 / height);
+                    } else {
+                        gl.uniform4f(uniform.getSizeUniform().getLocation(), 1, 1, 1, 1);
+                    }
+
                     break;
                 }
             }
@@ -323,6 +335,17 @@ namespace Facepunch {
 
             private onSetUniform4F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
                 gl.uniform4f(args.uniform.getLocation(), args.x, args.y, args.z, args.w);
+            }
+
+            setUniformTextureSize(uniform: Uniform4F, tex: Texture): void {
+                if (uniform == null || uniform.getLocation() == null) return;
+                this.push(this.onSetUniformTextureSize, { uniform: uniform, texture: tex });
+            }
+
+            private onSetUniformTextureSize(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+                const width = args.texture.getWidth(0);
+                const height = args.texture.getHeight(0);
+                gl.uniform4f(args.uniform.getLocation(), width, height, 1 / width, 1 / height);
             }
 
             setUniformMatrix4(uniform: Uniform, transpose: boolean, values: Float32Array): void {
