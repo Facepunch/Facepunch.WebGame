@@ -25,12 +25,12 @@ namespace Facepunch {
                 const near = clipParams[0];
                 const far = clipParams[1];
 
-                const densMul = this.maxDensity / ((this.end - this.start) * (far - near));
-                const densNear = (near - this.start) * densMul;
-                const densFar = (far - this.start) * densMul;
+                const densMul = this.maxDensity / (this.end - this.start);
+                const dens0 = (0 - this.start) * densMul;
+                const dens1 = (1 - this.start) * densMul;
 
-                this.paramsValues[0] = densNear;
-                this.paramsValues[1] = densFar;
+                this.paramsValues[0] = dens0;
+                this.paramsValues[1] = dens1 - dens0;
                 this.paramsValues[2] = 0;
                 this.paramsValues[3] = this.maxDensity;
 
