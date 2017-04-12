@@ -53,6 +53,11 @@ namespace Facepunch {
 
                     this.frameColor.bufferParameter(buf, Camera.opaqueColorParam);
                     this.frameDepth.bufferParameter(buf, Camera.opaqueDepthParam);
+
+                    const gl = this.context;
+
+                    buf.disable(gl.CULL_FACE);
+                    buf.depthMask(true);
                 }
             }
         }

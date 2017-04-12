@@ -66,6 +66,7 @@ namespace Facepunch {
             private boundTextures: { [unit: number]: Texture };
             private boundBuffers: { [target: number]: WebGLBuffer };
             private capStates: { [cap: number]: boolean };
+            private depthMaskState: boolean;
 
             private parameters: { [param: number]: Float32Array | Texture } = {};
 
@@ -143,6 +144,7 @@ namespace Facepunch {
                 this.commands = [];
                 this.lastCommand = null;
                 this.drawCalls = 0;
+                this.depthMaskState = undefined;
             }
 
             getDrawCalls(): number {
@@ -210,6 +212,9 @@ namespace Facepunch {
             }
 
             depthMask(flag: boolean): void {
+                if (this.depthMaskState === flag) return;
+
+                this.depthMaskState = flag;
                 this.push(this.onDepthMask, { enabled: flag });
             }
 

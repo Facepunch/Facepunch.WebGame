@@ -14,7 +14,7 @@ namespace Facepunch {
         export interface IMaterialProperty {
             type: MaterialPropertyType;
             name: string;
-            value: boolean | number | string | ITextureInfo;
+            value: boolean | number | string | ITextureInfo | IColor;
         }
         
         export interface IMaterialInfo {
@@ -71,6 +71,17 @@ namespace Facepunch {
                     case MaterialPropertyType.Boolean:
                     case MaterialPropertyType.Number: {
                         this.properties[info.name] = info.value as boolean | number;
+                        break;
+                    }
+                    case MaterialPropertyType.Color: {
+                        let vec = this.properties[info.name];
+                        if (vec === undefined) {
+                            vec = this.properties[info.name] = new Vector4();
+                        }
+
+                        const color = info.value as IColor;
+
+                        vec.set(color.r, color.g, color.b, color.a);
                         break;
                     }
                     case MaterialPropertyType.TextureUrl: {

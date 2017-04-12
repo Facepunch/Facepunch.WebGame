@@ -59,7 +59,7 @@ namespace Facepunch {
                     this.ownsDepthTexture = true;
                     this.depthTexture = new RenderTexture(gl, TextureTarget.Texture2D,
                         TextureFormat.DepthComponent, TextureDataType.Uint32,
-                        this.frameTexture.getWidth(0), this.frameTexture.getWidth(0));
+                        this.frameTexture.getWidth(0), this.frameTexture.getHeight(0));
                 } else {
                     this.ownsDepthTexture = false;
                     this.depthTexture = existing;

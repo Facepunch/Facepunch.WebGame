@@ -148,6 +148,7 @@ namespace Facepunch {
                 };
 
                 this.composeFrameHandle = this.addMeshData(meshData)[0];
+                this.composeFrameHandle.program = this.composeFrameHandle.material.program;
                 return this.composeFrameHandle;
             }
 
