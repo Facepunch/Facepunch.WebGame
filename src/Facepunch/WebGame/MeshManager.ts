@@ -35,11 +35,14 @@ namespace Facepunch {
                 };
             }
 
-            static copyElement(src: IMeshData, dst: IMeshData, index: number): void {
+            static copyElement(src: IMeshData, dst: IMeshData, index: number): IMeshElement {
                 const srcElem = src.elements[index];
                 if (srcElem.vertexOffset === undefined || srcElem.vertexCount === undefined) {
                     throw new Error("Can only copy elements with vertexOffset and vertexCount values.");
                 }
+
+                const srcVertLength = MeshManager.getVertexLength(src.attributes);
+                const dstVertLength = MeshManager.getVertexLength(dst.attributes);
 
                 const dstElem: IMeshElement = {
                     mode: srcElem.mode,
@@ -47,26 +50,45 @@ namespace Facepunch {
                     indexOffset: dst.indices.length,
                     indexCount: srcElem.indexCount,
                     vertexOffset: dst.vertices.length,
-                    vertexCount: srcElem.vertexCount
+                    vertexCount: Math.floor(srcElem.vertexCount / srcVertLength) * dstVertLength
                 };
 
                 dst.elements.push(dstElem);
 
-                const vertLength = MeshManager.getVertexLength(src.attributes);
-
                 const srcIndices = src.indices;
                 const dstIndices = dst.indices;
-                const srcVertexOffset = Math.floor(srcElem.vertexOffset / vertLength);
-                const dstVertexOffset = Math.floor(dstElem.vertexOffset / vertLength);
+                const srcOffset = Math.floor(srcElem.vertexOffset / srcVertLength);
+                const dstOffset = Math.floor(dstElem.vertexOffset / dstVertLength);
+
                 for (let i = srcElem.indexOffset, iEnd = srcElem.indexOffset + srcElem.indexCount; i < iEnd; ++i) {
-                    dstIndices.push(srcIndices[i] - srcVertexOffset + dstVertexOffset);
+                    dstIndices.push(srcIndices[i] - srcOffset + dstOffset);
                 }
-                
+
                 const srcVertices = src.vertices;
                 const dstVertices = dst.vertices;
-                for (let i = srcElem.vertexOffset, iEnd = srcElem.vertexOffset + srcElem.vertexCount; i < iEnd; ++i) {
-                    dstVertices.push(srcVertices[i]);
+
+                dstVertices.length += dstElem.vertexCount;
+
+                for (let attrib of dst.attributes) {
+                    const srcAttribOffset = MeshManager.getAttributeOffset(src.attributes, attrib);
+                    const dstAttribOffset = MeshManager.getAttributeOffset(dst.attributes, attrib);
+                    const existsInSrc = dstAttribOffset !== undefined;
+
+                    const attribSize = attrib.size;
+
+                    for (let i = dstAttribOffset + dstElem.vertexOffset,
+                        j = srcAttribOffset + srcElem.vertexOffset,
+                        iEnd = dstElem.vertexCount;
+                        i < iEnd;
+                        i += dstVertLength, j += srcVertLength) {
+                        
+                        for (let k = 0, kEnd = attribSize; k < kEnd; ++k) {
+                            dstVertices[i + k] = existsInSrc ? srcVertices[j + k] : 0;
+                        }
+                    }
                 }
+
+                return dstElem;
             }
 
             static clone(data: IMeshData): IMeshData {
