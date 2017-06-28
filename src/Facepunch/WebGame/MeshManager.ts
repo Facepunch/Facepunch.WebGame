@@ -26,6 +26,49 @@ namespace Facepunch {
                 };
             }
 
+            static createEmpty(attribs: VertexAttribute[]): IMeshData {
+                return {
+                    attributes: attribs,
+                    elements: [],
+                    vertices: [],
+                    indices: []
+                };
+            }
+
+            static copyElement(src: IMeshData, dst: IMeshData, index: number): void {
+                const srcElem = src.elements[index];
+                if (srcElem.vertexOffset === undefined || srcElem.vertexCount === undefined) {
+                    throw new Error("Can only copy elements with vertexOffset and vertexCount values.");
+                }
+
+                const dstElem: IMeshElement = {
+                    mode: srcElem.mode,
+                    material: srcElem.material,
+                    indexOffset: dst.indices.length,
+                    indexCount: srcElem.indexCount,
+                    vertexOffset: dst.vertices.length,
+                    vertexCount: srcElem.vertexCount
+                };
+
+                dst.elements.push(dstElem);
+
+                const vertLength = MeshManager.getVertexLength(src.attributes);
+
+                const srcIndices = src.indices;
+                const dstIndices = dst.indices;
+                const srcVertexOffset = Math.floor(srcElem.vertexOffset / vertLength);
+                const dstVertexOffset = Math.floor(dstElem.vertexOffset / vertLength);
+                for (let i = srcElem.indexOffset, iEnd = srcElem.indexOffset + srcElem.indexCount; i < iEnd; ++i) {
+                    dstIndices.push(srcIndices[i] - srcVertexOffset + dstVertexOffset);
+                }
+                
+                const srcVertices = src.vertices;
+                const dstVertices = dst.vertices;
+                for (let i = srcElem.vertexOffset, iEnd = srcElem.vertexOffset + srcElem.vertexCount; i < iEnd; ++i) {
+                    dstVertices.push(srcVertices[i]);
+                }
+            }
+
             static clone(data: IMeshData): IMeshData {
                 return {
                     attributes: data.attributes,
