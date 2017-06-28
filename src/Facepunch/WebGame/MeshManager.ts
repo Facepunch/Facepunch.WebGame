@@ -78,10 +78,10 @@ namespace Facepunch {
 
                     for (let i = dstAttribOffset + dstElem.vertexOffset,
                         j = srcAttribOffset + srcElem.vertexOffset,
-                        iEnd = dstElem.vertexCount;
+                        iEnd =  dstAttribOffset + dstElem.vertexOffset + dstElem.vertexCount;
                         i < iEnd;
                         i += dstVertLength, j += srcVertLength) {
-                        
+
                         for (let k = 0, kEnd = attribSize; k < kEnd; ++k) {
                             dstVertices[i + k] = existsInSrc ? srcVertices[j + k] : 0;
                         }
