@@ -2,7 +2,7 @@ namespace Facepunch {
     export class Http {
         static readonly cancelled: any = { toString: () => "Request cancelled by user." };
 
-        static getString(url: string, success: (response: string) => void, failure?: (error: any) => void): void {
+        static getString(url: string, success: (response: string) => void, failure?: (error: any) => void, progress?: (loaded: number, total: number) => void): void {
             var request = new XMLHttpRequest();
 
             request.addEventListener("load", ev => success(request.responseText));
@@ -12,15 +12,20 @@ namespace Facepunch {
                 request.addEventListener("abort", ev => failure(Http.cancelled));
             }
 
+            if (progress != null) {
+                request.addEventListener("progress", ev => ev.lengthComputable
+                    ? progress(ev.loaded, ev.total) : progress(0, undefined));
+            }
+
             request.open("get", url, true);
             request.send();
         }
 
-        static getJson<TResponse>(url: string, success: (response: TResponse) => void, failure?: (error: any) => void): void {
+        static getJson<TResponse>(url: string, success: (response: TResponse) => void, failure?: (error: any) => void, progress?: (loaded: number, total: number) => void): void {
             Http.getString(url, text => success(JSON.parse(text)), failure);
         }
 
-        static getImage(url: string, success: (response: HTMLImageElement) => void, failure?: (error: any) => void): void {
+        static getImage(url: string, success: (response: HTMLImageElement) => void, failure?: (error: any) => void, progress?: (loaded: number, total: number) => void): void {
             const image = new Image();
             image.src = url;
             image.addEventListener("load", ev => success(image));
@@ -28,6 +33,11 @@ namespace Facepunch {
             if (failure != null) {
                 image.addEventListener("error", ev => failure(ev.error));
                 image.addEventListener("abort", ev => failure(Http.cancelled));
+            }
+            
+            if (progress != null) {
+                image.addEventListener("progress", ev => ev.lengthComputable
+                    ? progress(ev.loaded, ev.total) : progress(0, undefined));
             }
         }
 
