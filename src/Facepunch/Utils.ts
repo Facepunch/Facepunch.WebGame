@@ -13,8 +13,8 @@ namespace Facepunch {
             }
 
             if (progress != null) {
-                request.addEventListener("progress", ev => ev.lengthComputable
-                    ? progress(ev.loaded, ev.total) : progress(0, undefined));
+                request.onprogress = ev => ev.lengthComputable
+                    ? progress(ev.loaded, ev.total) : progress(0, undefined);
             }
 
             request.open("get", url, true);
@@ -22,7 +22,7 @@ namespace Facepunch {
         }
 
         static getJson<TResponse>(url: string, success: (response: TResponse) => void, failure?: (error: any) => void, progress?: (loaded: number, total: number) => void): void {
-            Http.getString(url, text => success(JSON.parse(text)), failure);
+            Http.getString(url, text => success(JSON.parse(text)), failure, progress);
         }
 
         static getImage(url: string, success: (response: HTMLImageElement) => void, failure?: (error: any) => void, progress?: (loaded: number, total: number) => void): void {
@@ -36,8 +36,8 @@ namespace Facepunch {
             }
             
             if (progress != null) {
-                image.addEventListener("progress", ev => ev.lengthComputable
-                    ? progress(ev.loaded, ev.total) : progress(0, undefined));
+                image.onprogress = ev => ev.lengthComputable
+                    ? progress(ev.loaded, ev.total) : progress(0, undefined);
             }
         }
 
