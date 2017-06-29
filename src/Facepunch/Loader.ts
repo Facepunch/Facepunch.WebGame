@@ -2,16 +2,18 @@ namespace Facepunch {
     export interface ILoadable {
         loadNext(callback: (requeue: boolean) => void): void;
         getLoadPriority(): number;
+        getLoadProgress(): number;
     }
 
     export interface ILoader {
         update(requestQuota: number): number;
+        getLoadProgress(): number;
     }
     
     export abstract class Loader<TLoadable extends ILoadable> implements ILoader {
         private queue: TLoadable[] = [];
         private loaded: { [url: string]: TLoadable } = {};
-        private active = 0;
+        private active: TLoadable[] = [];
         private completed = 0;
 
         load(url: string): TLoadable {
@@ -25,20 +27,14 @@ namespace Facepunch {
             return loaded;
         }
 
-        getQueueCount(): number {
-            return this.queue.length;
-        }
+        getLoadProgress(): number {
+            let total = this.queue.length + this.active.length + this.completed;
+            let complete = this.completed;
 
-        getActiveCount(): number {
-            return this.active;
-        }
+            for (let item of this.queue) complete += item.getLoadProgress();
+            for (let item of this.active) complete += item.getLoadProgress();
 
-        getCompletedCount(): number {
-            return this.completed;
-        }
-
-        getTotalCount(): number {
-            return this.queue.length + this.active + this.completed;
+            return total > 0 ? complete / total : 0;
         }
 
         protected enqueueItem(item: TLoadable): void {
@@ -73,19 +69,19 @@ namespace Facepunch {
 
         update(requestQuota: number): number {
             let next: TLoadable;
-            while (this.active < requestQuota && (next = this.getNextToLoad()) != null) {
-                ++this.active;
+            while (this.active.length < requestQuota && (next = this.getNextToLoad()) != null) {
+                this.active.push(next);
 
                 const nextCopy = next;
                 next.loadNext(requeue => {
-                    --this.active;
+                    this.active.splice(this.active.indexOf(nextCopy), 1);
                     if (requeue) this.queue.push(nextCopy);
                     else ++this.completed;
                     this.onFinishedLoadStep(nextCopy);
                 });
             }
 
-            return this.active;
+            return this.active.length;
         }
     }
 }

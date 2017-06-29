@@ -30,10 +30,16 @@ namespace Facepunch {
             private meshData: IMeshData;
             private handles: MeshHandle[];
 
+            private loadProgress = 0;
+
             constructor(game: Game, url: string) {
                 super(game.meshes, game.materialLoader);
 
                 this.url = url;
+            }
+
+            getLoadProgress(): number {
+                return this.loadProgress;
             }
 
             isLoaded(): boolean {
@@ -70,11 +76,16 @@ namespace Facepunch {
 
                     this.materials = materials;
                     this.meshData = MeshManager.decompress(info.meshData);
+                    this.loadProgress = 1;
                     this.dispatchOnLoadCallbacks();
 
                     callback(false);
                 }, error => {
                     callback(false);
+                }, (loaded, total) => {
+                    if (total !== undefined) {
+                        this.loadProgress = loaded / total;
+                    }
                 });
             }
         }

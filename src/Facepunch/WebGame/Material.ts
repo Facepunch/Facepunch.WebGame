@@ -59,11 +59,17 @@ namespace Facepunch {
 
             private textureSource: (index: number) => Texture;
 
+            private loadProgress = 0;
+
             constructor(game: Game, url?: string) {
                 super();
 
                 this.game = game;
                 this.url = url;
+            }
+
+            getLoadProgress(): number {
+                return this.loadProgress;
             }
 
             private addPropertyFromInfo(info: IMaterialProperty): void {
@@ -115,6 +121,7 @@ namespace Facepunch {
             loadFromInfo(info: IMaterialInfo, textureSource?: (index: number) => Texture): void {
                 this.program = this.game.shaders.get(info.shader);
                 this.textureSource = textureSource;
+                this.loadProgress = 1;
 
                 if (this.program != null) {
                     this.properties = this.program.createMaterialProperties();
@@ -142,6 +149,10 @@ namespace Facepunch {
                     callback(false);
                 }, error => {
                     callback(false);
+                }, (loaded, total) => {
+                    if (total !== undefined) {
+                        this.loadProgress = loaded / total;
+                    }
                 });
             }
         }

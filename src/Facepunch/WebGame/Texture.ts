@@ -538,6 +538,8 @@ namespace Facepunch {
             private level0Width: number;
             private level0Height: number;
 
+            private loadProgress = 0;
+
             constructor(context: WebGLRenderingContext, url: string) {
                 super();
 
@@ -560,7 +562,11 @@ namespace Facepunch {
                     });
                 }
             }
-            
+
+            getLoadProgress(): number {
+                return this.info == null ? 0 : Math.min(1, (this.nextElement + this.loadProgress) / this.info.elements.length);
+            }
+
             hasMipLevel(level: number): boolean {
                 const elems = this.info.elements;
                 for (let i = 0, iEnd = this.nextElement; i < iEnd; ++i) {
@@ -703,6 +709,8 @@ namespace Facepunch {
 
                 const gl = this.context;
 
+                this.loadProgress = 0;
+
                 gl.bindTexture(this.target, handle);
 
                 let success = false;
@@ -777,6 +785,10 @@ namespace Facepunch {
                     callback(info.elements != null && this.nextElement < info.elements.length);
                 }, error => {
                     callback(false);
+                }, (loaded, total) => {
+                    if (total !== undefined) {
+                        this.loadProgress = loaded / total;
+                    }
                 });
             }
         }
