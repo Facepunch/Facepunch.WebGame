@@ -71,10 +71,14 @@ namespace Facepunch {
                 this.geometryInvalid = true;
             }
 
+            protected onPopulateDrawList(drawList: DrawList) {
+                this.game.populateDrawList(this.drawList, this);
+            }
+
             render(): void {
                 if (this.geometryInvalid) {
                     this.drawList.clear();
-                    this.game.populateDrawList(this.drawList, this);
+                    this.onPopulateDrawList(this.drawList);
                 }
 
                 if (this.geometryInvalid || this.drawList.isInvalid()) {
