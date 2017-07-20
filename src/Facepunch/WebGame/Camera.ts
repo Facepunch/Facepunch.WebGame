@@ -16,28 +16,48 @@ namespace Facepunch {
             private readonly drawList = new DrawList();
             private readonly commandBuffer: CommandBuffer;
             private opaqueFrameBuffer: FrameBuffer;
-            
+
             private geometryInvalid = true;
             
             readonly game: Game;
             readonly fog = new Fog();
+
+            private near: number;
+            private far: number;
 
             private projectionInvalid = true;
             private projectionMatrix = new Matrix4();
             private inverseProjectionInvalid = true;
             private inverseProjectionMatrix = new Matrix4();
 
-            constructor(game: Game) {
+            constructor(game: Game, near: number, far: number) {
                 super();
 
                 this.game = game;
                 this.commandBuffer = new CommandBuffer(game.context);
-            
+
+                this.near = near;
+                this.far = far;
+
                 game.addDrawListInvalidationHandler((geom: boolean) => {
                     if (geom) this.invalidateGeometry();
                     this.drawList.invalidate();
                 });
             }
+
+            setNear(value: number): void {
+                if (value === this.near) return;
+                this.near = value;
+                this.invalidateProjectionMatrix();
+            }
+            getNear(): number { return this.near; }
+
+            setFar(value: number): void {
+                if (value === this.far) return;
+                this.far = value;
+                this.invalidateProjectionMatrix();
+            }
+            getFar(): number { return this.far; }
 
             getOpaqueColorTexture(): RenderTexture {
                 return this.opaqueFrameBuffer == null ? null : this.opaqueFrameBuffer.getColorTexture();
@@ -98,9 +118,6 @@ namespace Facepunch {
             getDrawCalls(): number {
                 return this.commandBuffer.getDrawCalls();
             }
-
-            abstract getNear(): number;
-            abstract getFar(): number;
 
             getProjectionMatrix(target?: Matrix4): Matrix4 {
                 if (this.projectionInvalid) {
@@ -166,16 +183,12 @@ namespace Facepunch {
         export class PerspectiveCamera extends Camera {
             private fov: number;
             private aspect: number;
-            private near: number;
-            private far: number;
 
             constructor(game: Game, fov: number, aspect: number, near: number, far: number) {
-                super(game);
+                super(game, near, far);
 
                 this.fov = fov;
                 this.aspect = aspect;
-                this.near = near;
-                this.far = far;
             }
 
             setFov(value: number): void {
@@ -192,23 +205,39 @@ namespace Facepunch {
             }
             getAspect(): number { return this.aspect; }
 
-            setNear(value: number): void {
-                if (value === this.near) return;
-                this.near = value;
-                this.invalidateProjectionMatrix();
-            }
-            getNear(): number { return this.near; }
-
-            setFar(value: number): void {
-                if (value === this.far) return;
-                this.far = value;
-                this.invalidateProjectionMatrix();
-            }
-            getFar(): number { return this.far; }
-
             protected onUpdateProjectionMatrix(matrix: Matrix4): void {
                 const deg2Rad = Math.PI / 180;
-                matrix.setPerspective(deg2Rad * this.fov, this.aspect, this.near, this.far);
+                matrix.setPerspective(deg2Rad * this.fov, this.aspect, this.getNear(), this.getFar());
+            }
+        }
+
+        export class OrthographicCamera extends Camera {
+            private size: number;
+            private aspect: number;
+
+            constructor(game: Game, size: number, aspect: number, near: number, far: number) {
+                super(game, near, far);
+
+                this.size = size;
+                this.aspect = aspect;
+            }
+
+            setSize(value: number): void {
+                if (value === this.size) return;
+                this.size = value;
+                this.invalidateProjectionMatrix();
+            }
+            getSize(): number { return this.size; }
+            
+            setAspect(value: number): void {
+                if (value === this.aspect) return;
+                this.aspect = value;
+                this.invalidateProjectionMatrix();
+            }
+            getAspect(): number { return this.aspect; }
+
+            protected onUpdateProjectionMatrix(matrix: Matrix4): void {
+                matrix.setOrthographic(this.size, this.aspect, this.getNear(), this.getFar());
             }
         }
     }

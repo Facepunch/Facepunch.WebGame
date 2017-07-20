@@ -646,6 +646,24 @@ namespace Facepunch {
             return this;
         }
 
+        setOrthographic(size: number, aspect: number, near: number, far: number): this {
+            const width = size * aspect;
+
+            const m = this.elements;
+            const x = 2 / width;
+            const y = 2 / size;
+            const z = 2 / (far - near);
+
+            const a = (far + near) * z * -0.5;
+
+            m[0x0] = x; m[0x4] = 0; m[0x8] = 0; m[0xc] = 0;
+            m[0x1] = 0; m[0x5] = y; m[0x9] = 0; m[0xd] = 0;
+            m[0x2] = 0; m[0x6] = 0; m[0xa] = z; m[0xe] = a;
+            m[0x3] = 0; m[0x7] = 0; m[0xb] = 0; m[0xf] = 1;
+
+            return this;
+        }
+
         setInverse(from: Matrix4): this {
             const m = from.elements;
             const inv = this.elements;
