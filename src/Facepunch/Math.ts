@@ -398,6 +398,38 @@ namespace Facepunch {
             return this;
         }
 
+        setInverse(quat?: Quaternion): this {
+            if (quat === undefined) quat = this;
+
+            this.x = -quat.x;
+            this.y = -quat.y;
+            this.z = -quat.z;
+            this.w = quat.w;
+
+            return this.setNormalized();
+        }
+
+        setNormalized(quat?: Quaternion): this {
+            if (quat === undefined) quat = this;
+
+            const len = Math.sqrt(
+                quat.x * quat.x + quat.y * quat.y +
+                quat.z * quat.z + quat.w * quat.w);
+
+            if (len === 0) {
+                this.x = this.y = this.z = 0;
+                this.w = 1;
+            } else {
+                const invLen = 1 / len;
+                this.x = quat.x * invLen;
+                this.y = quat.y * invLen;
+                this.z = quat.z * invLen;
+                this.w = quat.w * invLen;
+            }
+
+            return this;
+        }
+
         setAxisAngle(axis: Vector3, angle: number): this {
             // From https://github.com/mrdoob/three.js
 
