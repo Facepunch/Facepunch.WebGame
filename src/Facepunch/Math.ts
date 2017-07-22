@@ -1,44 +1,10 @@
 namespace Facepunch {
-    export interface IPoolable {
-        release(): void;
-    }
-
-    export class Pool<T extends IPoolable> {
-        private readonly list: T[] = [];
-        private readonly ctor: {new(): T};
-
-        readonly capacity = 256;
-
-        constructor(ctor: {new(): T}) {
-            this.ctor = ctor;
-        }
-
-        create(): T {
-            const list = this.list;
-            const length = list.length;
-            if (length === 0) return new this.ctor();
-            const item = list[length - 1];
-            list.length = length - 1;
-            return item;
-        }
-
-        release(item: T): void {
-            const list = this.list;
-            const length = list.length;
-            if (length >= this.capacity) return;
-            list[length] = item;
-            list.length = length + 1;
-        }
-    }
-
     export interface IVector2 {
         x: number;
         y: number;
     }
 
-    export class Vector2 implements IVector2, IPoolable {
-        static readonly pool = new Pool(Vector2);
-
+    export class Vector2 implements IVector2 {
         x: number;
         y: number;
 
@@ -100,18 +66,13 @@ namespace Facepunch {
             this.y = vec.y;
             return this;
         }
-        
-        release(): void {
-            Vector2.pool.release(this);
-        }
     }
 
     export interface IVector3 extends IVector2 {
         z: number;
     }
 
-    export class Vector3 implements IVector3, IPoolable {
-        static readonly pool = new Pool(Vector3);
+    export class Vector3 implements IVector3 {
 
         static readonly zero = new Vector3(0, 0, 0);
         static readonly one = new Vector3(1, 1, 1);
@@ -258,18 +219,13 @@ namespace Facepunch {
             this.z = z * invLen;
             return this;
         }
-        
-        release(): void {
-            Vector3.pool.release(this);
-        }
     }
 
     export interface IVector4 extends IVector3 {
         w: number;
     }
 
-    export class Vector4 implements IVector4, IPoolable {
-        static readonly pool = new Pool(Vector4);
+    export class Vector4 implements IVector4 {
 
         x: number;
         y: number;
@@ -361,15 +317,9 @@ namespace Facepunch {
 
             return this;
         }
-        
-        release(): void {
-            Vector4.pool.release(this);
-        }
     }
 
-    export class Quaternion implements IVector4, IPoolable {
-        static readonly pool = new Pool(Quaternion);
-
+    export class Quaternion implements IVector4 {
         x: number;
         y: number;
         z: number;
@@ -483,10 +433,6 @@ namespace Facepunch {
 
             return this;
         }
-        
-        release(): void {
-            Quaternion.pool.release(this);
-        }
     }
 
     export enum AxisOrder {
@@ -522,9 +468,7 @@ namespace Facepunch {
         }
     }
 
-    export class Box3 implements IPoolable {
-        static readonly pool = new Pool(Box3);
-
+    export class Box3 {
         min = new Vector3();
         max = new Vector3();
 
@@ -574,10 +518,6 @@ namespace Facepunch {
             const minY = Math.max(0, this.min.y - vec.y, vec.y - this.max.y);
             const minZ = Math.max(0, this.min.z - vec.z, vec.z - this.max.z);
             return Math.sqrt(minX * minX + minY * minY + minZ * minZ);
-        }
-        
-        release(): void {
-            Box3.pool.release(this);
         }
     }
 
