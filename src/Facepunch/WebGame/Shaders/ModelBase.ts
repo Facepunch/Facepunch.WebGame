@@ -5,6 +5,7 @@ namespace Facepunch {
                 baseTexture: Texture = null;
                 noFog = false;
                 translucent = false;
+                shadowCast = true;
             }
 
             export abstract class ModelBase<TMaterialProps extends ModelBaseMaterialProps>

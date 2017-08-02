@@ -5,6 +5,7 @@ namespace Facepunch {
 
             private items: IDrawListItem[] = [];
             private invalid: boolean;
+            private shadowCast: MeshHandle[] = [];
             private opaque: MeshHandle[] = [];
             private translucent: MeshHandle[] = [];
 
@@ -22,6 +23,7 @@ namespace Facepunch {
                 }
 
                 this.items = [];
+                this.shadowCast = [];
                 this.opaque = [];
                 this.translucent = [];
             }
@@ -116,6 +118,7 @@ namespace Facepunch {
             }
 
             private buildHandleList(shaders: ShaderManager): void {
+                this.shadowCast = [];
                 this.opaque = [];
                 this.translucent = [];
                 this.hasRefraction = false;
@@ -140,15 +143,21 @@ namespace Facepunch {
                             handle.program = errorProgram;
                         }
 
-                        if (handle.material.properties.translucent || handle.material.properties.refract) {
-                            if (handle.material.properties.refract) this.hasRefraction = true;
+                        const properties = handle.material.properties;
+
+                        if (properties.translucent || properties.refract) {
+                            if (properties.refract) this.hasRefraction = true;
                             this.translucent.push(handle);
-                        } else this.opaque.push(handle);
+                        } else {
+                            if (properties.shadowCast) this.shadowCast.push(handle);
+                            this.opaque.push(handle);
+                        }
                     }
                 }
 
                 this.isBuildingList = false;
 
+                this.shadowCast.sort(DrawList.compareHandles);
                 this.opaque.sort(DrawList.compareHandles);
                 this.translucent.sort(DrawList.compareHandles);
                 
@@ -162,6 +171,16 @@ namespace Facepunch {
                 if (this.invalid) this.buildHandleList(camera.game.shaders);
 
                 camera.game.shaders.resetUniformCache();
+
+                if (this.shadowCast.length > 0) {
+                    camera.bufferShadowTargetBegin(buf);
+
+                    for (let i = 0, iEnd = this.shadowCast.length; i < iEnd; ++i) {
+                        this.bufferHandle(buf, this.shadowCast[i]);
+                    }
+
+                    camera.bufferShadowTargetEnd(buf);
+                }
 
                 if (this.hasRefraction) camera.bufferOpaqueTargetBegin(buf);
 

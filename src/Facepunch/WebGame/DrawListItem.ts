@@ -18,10 +18,12 @@ namespace Facepunch {
             private readonly drawLists: DrawList[] = [];
 
             clearMeshHandles(): void {
-                for (let i = 0, iEnd = this.meshHandles.length; i < iEnd; ++i) {
-                    const handle = this.meshHandles[i];
-                    if (handle.material == null) continue;
-                    handle.material.removeUsage(this);
+                if (this.meshHandles != null) {
+                    for (let i = 0, iEnd = this.meshHandles.length; i < iEnd; ++i) {
+                        const handle = this.meshHandles[i];
+                        if (handle.material == null) continue;
+                        handle.material.removeUsage(this);
+                    }
                 }
 
                 this.meshHandles = null;

@@ -17,12 +17,18 @@ namespace Facepunch {
 
             setModel(model: Model): void {
                 if (this.model === model) return;
+                if (this.model != null) {
+                    this.model.removeUsage(this);
+                }
+
                 this.model = model;
 
                 if (model == null) {
                     this.drawable.clearMeshHandles();
                     return;
                 }
+
+                this.model.addUsage(this);
 
                 model.addOnLoadCallback(mdl => this.onModelLoaded(mdl));
             }

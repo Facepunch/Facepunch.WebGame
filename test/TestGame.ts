@@ -37,9 +37,12 @@ class TestGame extends WebGame.Game {
                 color.y = 0.75 + Math.random() * 0.25;
                 color.z = 0.75 + Math.random() * 0.25;
 
+                const scaleX = Math.random() * 0.25 + 1.25;
+                const scaleZ = Math.random() + 1;
+
                 obj.setPosition(x * 128, y * 128, 0);
                 obj.setAngles(0, angle + (Math.random() - 0.5) * Math.PI / 16, 0);
-                obj.setScale(Math.random() * 0.25 + 1.25);
+                obj.setScale({x: scaleX, y: scaleX, z: scaleX * scaleZ});
                 obj.setColorTint(color);
                 obj.setModel(model);
 

@@ -3,6 +3,11 @@
 
 namespace Facepunch {
     export namespace WebGame {
+        export interface IShadowCascade {
+            nearFraction: number;
+            farFraction: number;
+        }
+
         export abstract class Camera extends Entity implements ICommandBufferParameterProvider {
             static readonly cameraPosParam = new CommandBufferParameter(UniformType.Float3);
             static readonly clipInfoParam = new CommandBufferParameter(UniformType.Float4);
@@ -10,6 +15,8 @@ namespace Facepunch {
             static readonly inverseProjectionMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
             static readonly viewMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
             static readonly inverseViewMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
+            static readonly shadowMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
+            static readonly inverseShadowMatrixParam = new CommandBufferParameter(UniformType.Matrix4);
             static readonly opaqueColorParam = new CommandBufferParameter(UniformType.Texture);
             static readonly opaqueDepthParam = new CommandBufferParameter(UniformType.Texture);
 
@@ -22,6 +29,11 @@ namespace Facepunch {
             readonly game: Game;
             readonly fog = new Fog();
 
+            readonly shadowCascades: IShadowCascade[] = [{
+                nearFraction: 0,
+                farFraction: 0.5
+            }];
+
             private near: number;
             private far: number;
 
@@ -29,6 +41,11 @@ namespace Facepunch {
             private projectionMatrix = new Matrix4();
             private inverseProjectionInvalid = true;
             private inverseProjectionMatrix = new Matrix4();
+
+            private shadowMatrix = new Matrix4();
+            private shadowInvalid = true;
+            private inverseShadowMatrix = new Matrix4();
+            private inverseShadowInvalid = true;
 
             constructor(game: Game, near: number, far: number) {
                 super();
@@ -119,6 +136,14 @@ namespace Facepunch {
                 buf.bindFramebuffer(null);
             }
 
+            bufferShadowTargetBegin(buf: CommandBuffer): void {
+
+            }
+
+            bufferShadowTargetEnd(buf: CommandBuffer): void {
+                
+            }
+
             getDrawCalls(): number {
                 return this.commandBuffer.getDrawCalls();
             }
@@ -151,13 +176,60 @@ namespace Facepunch {
                 return this.inverseProjectionMatrix;
             }
 
+            getShadowMatrix(cascadeIndex: number, target?: Matrix4): Matrix4 {
+                const cascade = this.shadowCascades[cascadeIndex];
+                const near = this.getNear();
+                const range = this.getFar() - near;
+
+                if (this.shadowInvalid) {
+                    this.shadowInvalid = false;
+                    this.onUpdateShadowMatrix(this.shadowMatrix,
+                        near + range * cascade.nearFraction,
+                        near + range * cascade.farFraction);
+                }
+
+                if (target != null) {
+                    target.copy(this.shadowMatrix);
+                    return target;
+                }
+
+                return this.shadowMatrix;
+            }
+
+            getInverseShadowMatrix(cascadeIndex: number, target?: Matrix4): Matrix4 {
+                if (this.inverseShadowInvalid) {
+                    this.inverseShadowInvalid = false;
+                    this.inverseShadowMatrix.setInverse(this.getShadowMatrix(cascadeIndex));
+                }
+
+                if (target != null) {
+                    target.copy(this.inverseShadowMatrix);
+                    return target;
+                }
+
+                return this.inverseShadowMatrix;
+            }
+
             protected invalidateProjectionMatrix(): void {
                 this.projectionInvalid = true;
                 this.inverseProjectionInvalid = true;
+                this.shadowInvalid = true;
+                this.inverseShadowInvalid = true;
+            }
+
+            invalidateMatrices(): void {
+                super.invalidateMatrices();
+
+                this.shadowInvalid = true;
+                this.inverseShadowInvalid = true;
             }
 
             protected abstract onUpdateProjectionMatrix(matrix: Matrix4): void;
             
+            protected onUpdateShadowMatrix(matrix: Matrix4, near: number, far: number): void {
+                throw "Not yet implemented";
+            }
+
             private cameraPosParams = new Float32Array(3);
             private clipParams = new Float32Array(4);
 
