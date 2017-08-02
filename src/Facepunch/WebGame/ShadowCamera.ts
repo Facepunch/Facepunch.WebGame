@@ -3,9 +3,9 @@ namespace Facepunch {
         export class ShadowCamera extends WebGame.OrthographicCamera {
             readonly game: Game;
 
-            private readonly targetCamera: PerspectiveCamera;
+            private readonly targetCamera: Camera;
 
-            constructor(game: Game, targetCamera: PerspectiveCamera) {
+            constructor(game: Game, targetCamera: Camera) {
                 super(game, 1, 1, 0, 1);
 
                 this.game = game;
@@ -23,8 +23,13 @@ namespace Facepunch {
                 bounds.min.set(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
                 bounds.max.set(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
 
-                const yScale = Math.tan(this.targetCamera.getFov() * 0.5);
-                const xScale = yScale * this.targetCamera.getAspect();
+                const perspCamera = this.targetCamera as PerspectiveCamera;
+                if (perspCamera.getFov === undefined) {
+                    throw "Not implement for non-perspective cameras";
+                }
+
+                const yScale = Math.tan(perspCamera.getFov() * 0.5);
+                const xScale = yScale * perspCamera.getAspect();
 
                 const xNear = xScale * near;
                 const yNear = yScale * near;
