@@ -15,6 +15,8 @@ namespace Facepunch {
             private addToFrustumBounds(invLight: Facepunch.Quaternion, vec: Facepunch.Vector4, bounds: Facepunch.Box3): void {
                 vec.applyMatrix4(this.targetCamera.getMatrix());
                 vec.applyQuaternion(invLight);
+
+                bounds.addPoint(vec);
             }
 
             private static readonly getFrustumBounds_vec = new Facepunch.Vector4();
@@ -54,7 +56,7 @@ namespace Facepunch {
             }
 
             private static readonly renderShadows_bounds = new Facepunch.Box3();
-            renderShadows(lightRotation: Facepunch.Quaternion, near: number, far: number): void {
+            bufferCascadeBegin(lightRotation: Facepunch.Quaternion, near: number, far: number): void {
                 const bounds = ShadowCamera.renderShadows_bounds;
 
                 this.getFrustumBounds(lightRotation, near, far, bounds);

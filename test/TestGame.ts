@@ -19,6 +19,7 @@ class TestGame extends WebGame.Game {
         this.mainCamera.fog.start = 64;
         this.mainCamera.fog.end = 2048;
         this.mainCamera.fog.color.set(0.675, 0.75, 0.5);
+        this.mainCamera.setShadowCascades([0.25]);
 
         this.mainCamera.setPosition(0, 128, 64);
 

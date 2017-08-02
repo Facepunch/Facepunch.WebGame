@@ -78,6 +78,10 @@ namespace Facepunch {
                 return this.opaqueFrameBuffer == null ? null : this.opaqueFrameBuffer.getDepthTexture();
             }
 
+            getShadowCascadeCount(): number {
+                return this.shadowCascades == null ? 0 : this.shadowCascades.length;
+            }
+
             invalidateGeometry(): void {
                 this.geometryInvalid = true;
             }
@@ -130,8 +134,23 @@ namespace Facepunch {
                 buf.bindFramebuffer(null);
             }
 
-            bufferShadowTargetBegin(buf: CommandBuffer): void {
+            private static readonly bufferShadowTargetBegin_lightNorm = new Facepunch.Vector3();
+            private static readonly bufferShadowTargetBegin_lightDir = new Facepunch.Quaternion();
+            bufferShadowTargetBegin(buf: CommandBuffer, cascadeIndex: number): void {
+                const nearFrac = cascadeIndex === 0 ? 0 : this.shadowCascades[cascadeIndex - 1];
+                const farFrac = this.shadowCascades[cascadeIndex];
 
+                const near = this.getNear();
+                const range = this.getFar() - near;
+
+                const lightDirArray = buf.getArrayParameter(Game.lightDirParam);
+                const lightDir = Camera.bufferShadowTargetBegin_lightDir;
+                const lightNorm = Camera.bufferShadowTargetBegin_lightNorm;
+
+                lightNorm.set(lightDirArray[0], lightDir[1], lightDir[2]);
+                lightDir.setLookAlong(lightNorm);
+
+                this.shadowCamera.bufferCascadeBegin(lightDir, near + nearFrac * range, near + farFrac * range);
             }
 
             bufferShadowTargetEnd(buf: CommandBuffer): void {

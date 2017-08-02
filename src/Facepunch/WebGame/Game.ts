@@ -5,6 +5,7 @@ namespace Facepunch {
         export class Game implements ICommandBufferParameterProvider {
             static readonly timeInfoParam = new CommandBufferParameter(UniformType.Float4);
             static readonly screenInfoParam = new CommandBufferParameter(UniformType.Float4);
+            static readonly lightDirParam = new CommandBufferParameter(UniformType.Float3);
 
             canLockPointer = false;
 

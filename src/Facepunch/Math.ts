@@ -160,9 +160,20 @@ namespace Facepunch {
             }
             return this;
         }
+        
+        cross(vec: IVector3): this {
+            const x = this.x;
+            const y = this.y;
+            const z = this.z;
 
-        divide(vec: IVector3): this
-        {
+            this.x = y * vec.z - z * vec.y;
+            this.y = z * vec.x - x * vec.z;
+            this.z = x * vec.y - y * vec.x;
+
+            return this;
+        }
+
+        divide(vec: IVector3): this {
             this.x /= vec.x;
             this.y /= vec.y;
             this.z /= vec.z;
@@ -380,7 +391,24 @@ namespace Facepunch {
             return this;
         }
 
-        setAxisAngle(axis: Vector3, angle: number): this {
+        private static readonly setLookAlong_temp = new Facepunch.Vector3();
+        setLookAlong(normal: IVector3): this {
+            const r = normal.y + 1;
+            const temp = Quaternion.setLookAlong_temp;
+
+            // TODO: check for small r?
+
+            temp.set(0, 1, 0).cross(normal);
+
+            this.x = temp.x;
+            this.y = temp.y;
+            this.z = temp.z;
+            this.w = r;
+
+            return this.setNormalized();
+        }
+
+        setAxisAngle(axis: IVector3, angle: number): this {
             // From https://github.com/mrdoob/three.js
 
             const halfAngle = angle * 0.5, s = Math.sin(halfAngle);
@@ -518,6 +546,20 @@ namespace Facepunch {
             const minY = Math.max(0, this.min.y - vec.y, vec.y - this.max.y);
             const minZ = Math.max(0, this.min.z - vec.z, vec.z - this.max.z);
             return Math.sqrt(minX * minX + minY * minY + minZ * minZ);
+        }
+
+        addPoint(vec: IVector3): void {
+            const min = this.min;
+            const max = this.max;
+
+            if (vec.x < min.x) min.x = vec.x;
+            if (vec.x > max.x) max.x = vec.x;
+
+            if (vec.y < min.y) min.y = vec.y;
+            if (vec.y > max.y) max.y = vec.y;
+
+            if (vec.z < min.z) min.z = vec.z;
+            if (vec.z > max.z) max.z = vec.z;
         }
     }
 

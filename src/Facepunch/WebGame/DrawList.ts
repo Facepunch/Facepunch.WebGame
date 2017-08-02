@@ -172,8 +172,8 @@ namespace Facepunch {
 
                 camera.game.shaders.resetUniformCache();
 
-                if (this.shadowCast.length > 0) {
-                    camera.bufferShadowTargetBegin(buf);
+                if (this.shadowCast.length > 0 && camera.getShadowCascadeCount() > 0) {
+                    camera.bufferShadowTargetBegin(buf, 0);
 
                     for (let i = 0, iEnd = this.shadowCast.length; i < iEnd; ++i) {
                         this.bufferHandle(buf, this.shadowCast[i]);
