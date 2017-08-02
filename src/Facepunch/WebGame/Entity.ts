@@ -149,7 +149,7 @@ namespace Facepunch {
                 this.setRotation(other.rotation);
             }
 
-            applyRotationTo(vector: Vector3): void {
+            applyRotationTo(vector: Vector3 | Vector4): void {
                 vector.applyQuaternion(this.rotation);
             }
 

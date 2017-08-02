@@ -195,10 +195,6 @@ namespace Facepunch {
             }
 
             protected abstract onUpdateProjectionMatrix(matrix: Matrix4): void;
-            
-            protected onUpdateShadowMatrix(matrix: Matrix4, near: number, far: number): void {
-                throw "Not yet implemented";
-            }
 
             private cameraPosParams = new Float32Array(3);
             private clipParams = new Float32Array(4);

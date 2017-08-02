@@ -295,6 +295,14 @@ namespace Facepunch {
             return this;
         }
 
+        multiplyScalar(val: number): this {
+            this.x *= val;
+            this.y *= val;
+            this.z *= val;
+            this.w *= val;
+            return this;
+        }
+
         applyQuaternion(quat: Quaternion): this {
             // From https://github.com/mrdoob/three.js
 
