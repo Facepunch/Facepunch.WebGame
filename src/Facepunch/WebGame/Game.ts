@@ -55,10 +55,11 @@ namespace Facepunch {
 
                 container.addEventListener("mousedown", evnt => {
                     this.heldMouseButtons[evnt.which] = true;
-                    this.onMouseDown(evnt.which as MouseButton,
+                    const handled = this.onMouseDown(evnt.which as MouseButton,
                         this.getScreenPos(evnt.pageX, evnt.pageY, this.mouseScreenPos));
                     if (this.canLockPointer) this.container.requestPointerLock();
-                    return false;
+                    if (handled) evnt.preventDefault();
+                    return handled;
                 });
 
                 this.canvas.addEventListener("contextmenu", evnt => {
@@ -68,8 +69,10 @@ namespace Facepunch {
 
                 window.addEventListener("mouseup", evnt => {
                     this.heldMouseButtons[evnt.which] = false;
-                    this.onMouseUp(evnt.which as MouseButton,
+                    const handled = this.onMouseUp(evnt.which as MouseButton,
                         this.getScreenPos(evnt.pageX, evnt.pageY, this.mouseScreenPos));
+                    if (handled) evnt.preventDefault();
+                    return handled;
                 });
 
                 window.addEventListener("mousemove", evnt => {
@@ -83,24 +86,29 @@ namespace Facepunch {
                 });
 
                 window.addEventListener("mousewheel", evnt => {
-                    this.onMouseScroll(evnt.wheelDelta / 400);
-                    return false;
+                    const handled = this.onMouseScroll(evnt.wheelDelta / 400);
+                    if (handled) evnt.preventDefault();
+                    return handled;
                 });
 
                 window.addEventListener("keydown", evnt => {
                     if (evnt.which < 0 || evnt.which >= 128) return true;
                     this.heldKeys[evnt.which] = true;
-                    this.onKeyDown(evnt.which as Key);
+                    let handled = this.onKeyDown(evnt.which as Key);
                     if (this.isPointerLocked() && evnt.which as Key === Key.Escape) {
                         document.exitPointerLock();
+                        handled = true;
                     }
-                    return evnt.which !== Key.Tab;
+                    if (handled) evnt.preventDefault();
+                    return evnt.which !== Key.Tab && handled;
                 });
 
                 window.addEventListener("keyup", evnt => {
                     if (evnt.which < 0 || evnt.which >= 128) return true;
                     this.heldKeys[evnt.which] = false;
-                    this.onKeyUp(evnt.which as Key);
+                    const handled = this.onKeyUp(evnt.which as Key);
+                    if (handled) evnt.preventDefault();
+                    return handled;
                 });
 
                 window.addEventListener("resize", evnt => {
@@ -214,16 +222,16 @@ namespace Facepunch {
                 return loader;
             }
             
-            protected onMouseDown(button: MouseButton, screenPos: Vector2): void {}
-            protected onMouseUp(button: MouseButton, screenPos: Vector2): void {}
+            protected onMouseDown(button: MouseButton, screenPos: Vector2): boolean { return false; }
+            protected onMouseUp(button: MouseButton, screenPos: Vector2): boolean { return false; }
 
-            protected onMouseScroll(delta: number) {}
+            protected onMouseScroll(delta: number): boolean { return false; }
 
             protected onMouseMove(screenPos: Vector2): void {}
             protected onMouseLook(delta: Vector2): void {}
             
-            protected onKeyDown(key: Key): void {}
-            protected onKeyUp(key: Key): void {}
+            protected onKeyDown(key: Key): boolean { return false; }
+            protected onKeyUp(key: Key): boolean { return false; }
 
             protected onUpdateFrame(dt: number): void {}
             protected onRenderFrame(dt: number): void {}
