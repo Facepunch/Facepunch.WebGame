@@ -230,6 +230,7 @@ namespace Facepunch {
             
             private readonly timeParams = new Float32Array(4);
             private readonly screenParams = new Float32Array(4);
+            private readonly lightDirParams = new Float32Array(3);
 
             populateCommandBufferParameters(buf: CommandBuffer): void {
                 this.timeParams[0] = this.getLastUpdateTime();
@@ -239,8 +240,13 @@ namespace Facepunch {
                 this.screenParams[2] = 1 / this.getWidth();
                 this.screenParams[3] = 1 / this.getHeight();
 
+                this.lightDirParams[0] = 0;
+                this.lightDirParams[1] = 0;
+                this.lightDirParams[2] = -1;
+
                 buf.setParameter(Game.timeInfoParam, this.timeParams);
                 buf.setParameter(Game.screenInfoParam, this.screenParams);
+                buf.setParameter(Game.lightDirParam, this.lightDirParams);
             }
         }
     }

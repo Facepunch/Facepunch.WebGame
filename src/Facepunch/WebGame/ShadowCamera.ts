@@ -44,7 +44,7 @@ namespace Facepunch {
                 this.addToFrustumBounds(vec.set(-xNear,  yNear, near, 1), bounds);
                 this.addToFrustumBounds(vec.set( xNear, -yNear, near, 1), bounds);
                 this.addToFrustumBounds(vec.set(-xNear, -yNear, near, 1), bounds);
-                
+
                 this.addToFrustumBounds(vec.set( xFar,  yFar, far, 1), bounds);
                 this.addToFrustumBounds(vec.set(-xFar,  yFar, far, 1), bounds);
                 this.addToFrustumBounds(vec.set( xFar, -yFar, far, 1), bounds);

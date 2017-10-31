@@ -147,7 +147,7 @@ namespace Facepunch {
                 const lightDir = Camera.bufferShadowTargetBegin_lightDir;
                 const lightNorm = Camera.bufferShadowTargetBegin_lightNorm;
 
-                lightNorm.set(lightDirArray[0], lightDir[1], lightDir[2]);
+                lightNorm.set(lightDirArray[0], lightDirArray[1], lightDirArray[2]);
                 lightDir.setLookAlong(lightNorm);
 
                 this.shadowCamera.bufferCascadeBegin(lightDir, near + nearFrac * range, near + farFrac * range);

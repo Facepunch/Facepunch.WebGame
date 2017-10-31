@@ -2,8 +2,8 @@
 <html lang="en">
     <head>
         <title>Facepunch.WebGame Test</title>
-        <script src="build/facepunch.webgame.js"></script>
-        <script src="build/testgame.js"></script>
+        <script src="/build/facepunch.webgame.js"></script>
+        <script src="/build/testgame.js"></script>
         <script>
             var game;
             window.onload = function() {
@@ -11,9 +11,26 @@
                 game.animate();
             }
         </script>
+        <style>
+            #canvas-container
+            {
+                position: absolute;
+                top: 76px;
+                left: 32px;
+                right: 32px;
+                bottom: 32px;
+                background-color: black;
+            }
+
+            #canvas-container canvas
+            {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
     </head>
     <body>
         <h1>Facepunch.WebGame Test</h1>
-        <div id="canvas-container" style="height:540px;width:100%"></div>
+        <div id="canvas-container"></div>
     </body>
 </html>

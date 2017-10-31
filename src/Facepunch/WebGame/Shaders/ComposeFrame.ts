@@ -25,8 +25,13 @@ namespace Facepunch {
 
                     void main()
                     {
-                        gl_FragColor = texture2D(uFrameColor, vScreenPos);
-                        gl_FragDepthEXT = texture2D(uFrameDepth, vScreenPos).r;
+                        vec4 sample = texture2D(uFrameColor, vScreenPos);
+                        float depth = texture2D(uFrameDepth, vScreenPos).r;
+
+                        if (sample.a <= 0.004 || depth >= 1.0) discard;
+
+                        gl_FragColor = sample;
+                        gl_FragDepthEXT = depth;
                     }`;
 
                 readonly frameColor: UniformSampler;
