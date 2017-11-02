@@ -20,8 +20,12 @@ namespace Facepunch {
             abstract getWidth(level: number): number;
             abstract getHeight(level: number): number;
 
+            getFrameCount(): number {
+                return 1;
+            }
+
             abstract getTarget(): TextureTarget;
-            abstract getHandle(): WebGLTexture;
+            abstract getHandle(frame?: number): WebGLTexture;
 
             dispose(): void {}
         }
@@ -146,7 +150,7 @@ namespace Facepunch {
                 return this.target;
             }
 
-            getHandle(): WebGLTexture {
+            getHandle(frame?: number): WebGLTexture {
                 return this.handle;
             }
 
@@ -506,6 +510,7 @@ namespace Facepunch {
 
         export interface ITextureElement {
             level: number;
+            frame?: number;
             target?: TextureTarget | string;
             url?: string;
             color?: IColor;
@@ -516,6 +521,7 @@ namespace Facepunch {
             target: TextureTarget | string;
             width?: number;
             height?: number;
+            frames?: number;
             params: ITextureParameters,
             elements: ITextureElement[]
         }
@@ -526,10 +532,10 @@ namespace Facepunch {
             readonly url: string;
 
             private info: ITextureInfo;
+            private frameCount: number;
             private nextElement = 0;
-            private canRender = false;
 
-            private handle: WebGLTexture;
+            private frameHandles: WebGLTexture[];
             private target: TextureTarget;
 
             private filter: TextureFilter;
@@ -588,12 +594,12 @@ namespace Facepunch {
                 return this.info.height >> level;
             }
 
-            toString(): string {
-                return `[TextureLoadable ${this.url}]`;
+            getFrameCount(): number {
+                return this.frameCount;
             }
 
-            isLoaded(): boolean {
-                return super.isLoaded() && this.canRender;
+            toString(): string {
+                return `[TextureLoadable ${this.url}]`;
             }
 
             getTarget(): TextureTarget {
@@ -601,8 +607,11 @@ namespace Facepunch {
                 return this.target;
             }
 
-            getHandle(): WebGLTexture {
-                return this.handle;
+            getHandle(frame?: number): WebGLTexture {
+                const frames = this.frameHandles;
+                return frames == null ? undefined
+                    : frame === undefined || this.frameCount === 1 ? frames[0]
+                    : frames[frame % this.frameCount];
             }
 
             getLoadPriority(): number {
@@ -630,20 +639,27 @@ namespace Facepunch {
                 gl.texParameteri(this.target, gl.TEXTURE_MAG_FILTER, this.filter);
             }
 
-            private getOrCreateHandle(): WebGLTexture {
-                if (this.handle !== undefined) return this.handle;
+            private getOrCreateHandle(frame: number): WebGLTexture {
+                if (this.frameHandles === undefined) {
+                    this.frameHandles = new Array<WebGLTexture>(this.frameCount);
+                }
+
+                frame = frame % this.frameCount;
+                let handle = this.frameHandles[frame];
+
+                if (handle !== undefined) return handle;
 
                 const gl = this.context;
 
-                this.handle = gl.createTexture();
+                handle = this.frameHandles[frame] = gl.createTexture();
 
                 if (this.info.params != null) {
-                    gl.bindTexture(this.target, this.handle);
+                    gl.bindTexture(this.target, handle);
                     this.applyTexParameters();
                     gl.bindTexture(this.target, null);
                 }
 
-                return this.handle;
+                return handle;
             }
 
             private static pixelBuffer: Uint8Array;
@@ -705,7 +721,8 @@ namespace Facepunch {
 
             private loadElement(element: ITextureElement, value?: HTMLImageElement): boolean {
                 const target = WebGl.decodeConst(element.target != undefined ? element.target : this.info.target);
-                const handle = this.getOrCreateHandle();
+                const frame = element.frame || 0;
+                const handle = this.getOrCreateHandle(frame);
 
                 const gl = this.context;
 
@@ -738,21 +755,23 @@ namespace Facepunch {
 
                 gl.bindTexture(this.target, null);
 
-                this.canRender = true;
-                this.dispatchOnLoadCallbacks();
-
                 return success;
             }
 
             loadFromInfo(info: ITextureInfo): void {
                 this.info = info;
+                this.frameCount = info.frames || 1;
                 this.target = WebGl.decodeConst(info.target);
 
-                this.getOrCreateHandle();
+                for (var frame = 0; frame < this.frameCount; ++frame) {
+                    this.getOrCreateHandle(frame);
+                }
 
                 while (this.canLoadImmediately(this.nextElement)) {
                     this.loadElement(info.elements[this.nextElement++]);
                 }
+                
+                this.dispatchOnLoadCallbacks();
             }
 
             loadNext(callback: (requeue: boolean) => void): void {
@@ -782,6 +801,7 @@ namespace Facepunch {
                         this.loadElement(info.elements[this.nextElement++]);
                     }
 
+                    this.dispatchOnLoadCallbacks();
                     callback(info.elements != null && this.nextElement < info.elements.length);
                 }, error => {
                     callback(false);

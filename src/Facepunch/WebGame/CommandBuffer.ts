@@ -5,6 +5,7 @@ namespace Facepunch {
         export interface ICommandBufferItem {
             action?: CommandBufferAction;
 
+            commandBuffer?: CommandBuffer;
             parameters?: { [param: number]: Float32Array | Texture };
             parameter?: CommandBufferParameter;
             program?: ShaderProgram;
@@ -12,6 +13,7 @@ namespace Facepunch {
             target?: number;
             unit?: number;
             texture?: Texture;
+            frames?: number;
             transpose?: boolean;
             values?: Float32Array;
             cap?: number;
@@ -72,6 +74,11 @@ namespace Facepunch {
 
             private lastCommand: ICommandBufferItem;
             private drawCalls = 0;
+
+            // TODO: temp animated texture solution
+            private tempLastRunTime: number;
+            private tempSpareTime = 0;
+            private tempCurFrame = 0;
 
             readonly immediate: boolean;
 
@@ -169,6 +176,16 @@ namespace Facepunch {
                     const command = this.commands[i];
                     command.action(gl, command);
                 }
+
+                // TODO: temp animated texture solution
+                const time = performance.now();
+                if (this.tempLastRunTime !== undefined && (time - this.tempLastRunTime) < 1000.0) {
+                    this.tempSpareTime += time - this.tempLastRunTime;
+                    const frames = Math.floor(this.tempSpareTime * 60.0 / 1000.0);
+                    this.tempCurFrame += frames;
+                    this.tempSpareTime -= frames * 1000.0 / 60.0;
+                }
+                this.tempLastRunTime = time;
             }
 
             private push(action: CommandBufferAction, args: ICommandBufferItem): void {
@@ -366,13 +383,25 @@ namespace Facepunch {
                 if (this.boundTextures[unit] === value) return;
                 this.boundTextures[unit] = value;
 
-                this.push(this.onBindTexture,
-                    { unit: unit + this.context.TEXTURE0, target: value.getTarget(), texture: value });
+                const frameCount = value.getFrameCount();
+
+                this.push(frameCount == 1 ? this.onBindTexture : this.onBindAnimatedTexture, {
+                    unit: unit + this.context.TEXTURE0,
+                    target: value.getTarget(),
+                    texture: value,
+                    frames: frameCount,
+                    commandBuffer: this
+                });
             }
 
             private onBindTexture(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
                 gl.activeTexture(args.unit);
                 gl.bindTexture(args.target, args.texture.getHandle());
+            }
+
+            private onBindAnimatedTexture(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+                gl.activeTexture(args.unit);
+                gl.bindTexture(args.target, args.texture.getHandle(args.commandBuffer.tempCurFrame % args.frames));
             }
 
             bindBuffer(target: number, buffer: WebGLBuffer): void {
