@@ -535,6 +535,9 @@ namespace Facepunch {
             private frameCount: number;
             private nextElement = 0;
 
+            private readyFrameCount = 0;
+            private readyFrames: boolean[];
+
             private frameHandles: WebGLTexture[];
             private target: TextureTarget;
 
@@ -559,6 +562,7 @@ namespace Facepunch {
                             filter: TextureFilter.Linear,
                             mipmap: true
                         },
+                        frames: 1,
                         elements: [
                             {
                                 level: 0,
@@ -580,6 +584,10 @@ namespace Facepunch {
                 }
 
                 return false;
+            }
+
+            isLoaded(): boolean {
+                return this.frameCount !== undefined && this.readyFrameCount >= this.frameCount;
             }
 
             getWidth(level: number): number {
@@ -740,7 +748,19 @@ namespace Facepunch {
                     success = false;
                 }
 
-                if (this.nextElement >= this.info.elements.length && this.mipmap) {
+                if (this.readyFrameCount < this.frameCount) {
+                    let readyFrames = this.readyFrames;
+                    if (readyFrames == null) {
+                        readyFrames = this.readyFrames = new Array<boolean>(this.frameCount);
+                    }
+
+                    if (!readyFrames[frame]) {
+                        readyFrames[frame] = true;
+                        ++this.readyFrameCount;
+                    }
+                }
+
+                if (element.level === 0 && this.mipmap) {
                     const minFilter = this.filter === TextureFilter.Nearest
                         ? TextureMinFilter.NearestMipmapLinear
                         : TextureMinFilter.LinearMipmapLinear;
@@ -770,8 +790,10 @@ namespace Facepunch {
                 while (this.canLoadImmediately(this.nextElement)) {
                     this.loadElement(info.elements[this.nextElement++]);
                 }
-                
-                this.dispatchOnLoadCallbacks();
+
+                if (this.isLoaded()) {
+                    this.dispatchOnLoadCallbacks();
+                }
             }
 
             loadNext(callback: (requeue: boolean) => void): void {
@@ -801,7 +823,10 @@ namespace Facepunch {
                         this.loadElement(info.elements[this.nextElement++]);
                     }
 
-                    this.dispatchOnLoadCallbacks();
+                    if (this.isLoaded()) {
+                        this.dispatchOnLoadCallbacks();
+                    }
+
                     callback(info.elements != null && this.nextElement < info.elements.length);
                 }, error => {
                     callback(false);
