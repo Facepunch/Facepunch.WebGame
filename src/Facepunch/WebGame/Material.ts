@@ -47,21 +47,36 @@ namespace Facepunch {
             }
 
             clone(): Material {
-                const clone = new Material(this.program);
-                const thisProps = this.properties;
-                const cloneProps = clone.properties;
-
-                for (let property in thisProps) {
-                    if (!thisProps.hasOwnProperty(property)) continue;
-
-                    cloneProps[property] = thisProps[property];
-                }
-
-                return clone;
+                return new MaterialClone(this);
             }
 
             isLoaded(): boolean {
                 return this.program != null;
+            }
+        }
+
+        export class MaterialClone extends Material {
+            constructor(base: Material) {
+                super();
+
+                base.addDependent(this);
+
+                this.program = base.program;
+                this.properties = {};
+
+                if (base.program == null) {
+                    base.addOnLoadCallback(mat => {
+                        this.program = mat.program;
+
+                        const thisProps = this.properties;
+                        const thatProps = mat.properties;
+                        for (let prop in thatProps) {
+                            if (thatProps.hasOwnProperty(prop) && !thisProps.hasOwnProperty(prop)) {
+                                thisProps[prop] = thatProps[prop];
+                            }
+                        }
+                    });
+                }
             }
         }
 
