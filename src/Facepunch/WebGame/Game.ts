@@ -57,7 +57,6 @@ namespace Facepunch {
                     this.heldMouseButtons[evnt.which] = true;
                     const handled = this.onMouseDown(evnt.which as MouseButton,
                         this.getScreenPos(evnt.pageX, evnt.pageY, this.mouseScreenPos));
-                    if (this.canLockPointer) this.container.requestPointerLock();
                     if (handled) evnt.preventDefault();
                     return handled;
                 });
@@ -222,7 +221,14 @@ namespace Facepunch {
                 return loader;
             }
             
-            protected onMouseDown(button: MouseButton, screenPos: Vector2): boolean { return false; }
+            protected onMouseDown(button: MouseButton, screenPos: Vector2): boolean {
+                if (this.canLockPointer && event.target === this.canvas) {
+                    this.container.requestPointerLock();
+                    return true;
+                }
+                return false;
+            }
+
             protected onMouseUp(button: MouseButton, screenPos: Vector2): boolean { return false; }
 
             protected onMouseScroll(delta: number): boolean { return false; }
