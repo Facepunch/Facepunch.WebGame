@@ -5,7 +5,7 @@ namespace Facepunch {
         }
 
         export abstract class Uniform {
-            protected readonly context: WebGLRenderingContext;
+            protected readonly context: IWebGLContext;
 
             protected readonly program: ShaderProgram;
             private name: string;

@@ -1,9 +1,9 @@
 namespace Facepunch {
     export namespace WebGame {
         export class TextureLoader extends Loader<TextureLoadable> {
-            private readonly context: WebGLRenderingContext;
+            private readonly context: IWebGLContext;
             
-            constructor(context: WebGLRenderingContext) {
+            constructor(context: IWebGLContext) {
                 super();
                 this.context = context;
             }

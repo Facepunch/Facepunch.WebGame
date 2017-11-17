@@ -1,6 +1,10 @@
 /// <reference path="Input.ts"/>
 
 namespace Facepunch {
+    export interface IWebGLContext extends WebGLRenderingContext {
+        webgl2: boolean;
+    }
+
     export namespace WebGame {
         export class Game implements ICommandBufferParameterProvider {
             static readonly timeInfoParam = new CommandBufferParameter(UniformType.Float4);
@@ -25,7 +29,7 @@ namespace Facepunch {
 
             readonly container: HTMLElement;
             readonly canvas: HTMLCanvasElement;
-            readonly context: WebGLRenderingContext;
+            readonly context: IWebGLContext;
 
             private readonly drawListInvalidationHandlers: ((geom: boolean) => void)[] = [];
             
@@ -39,7 +43,15 @@ namespace Facepunch {
                 this.container = container;
                 this.canvas = document.createElement("canvas");
                 this.container.appendChild(this.canvas);
-                this.context = this.canvas.getContext("webgl");
+                this.context = this.canvas.getContext("webgl2") as IWebGLContext;
+
+                if (this.context == null) {
+                    this.context = this.canvas.getContext("webgl") as IWebGLContext;
+                    this.context.webgl2 = false;
+                } else {
+                    this.context.webgl2 = true;
+                }
+
 
                 this.shaders = new ShaderManager(this.context);
                 this.meshes = new MeshManager(this);
@@ -47,11 +59,14 @@ namespace Facepunch {
                 this.materialLoader = this.addLoader(new MaterialLoader(this));
                 this.textureLoader = this.addLoader(new TextureLoader(this.context));
                 this.modelLoader = this.addLoader(new ModelLoader(this));
-                
-                this.enableExtension("OES_texture_float");
+
+                if (!this.context.webgl2) {
+                    this.enableExtension("OES_texture_float");
+                    this.enableExtension("EXT_frag_depth");
+                    this.enableExtension("WEBGL_depth_texture");
+                }
+
                 this.enableExtension("OES_texture_float_linear");
-                this.enableExtension("EXT_frag_depth");
-                this.enableExtension("WEBGL_depth_texture");
 
                 container.addEventListener("mousedown", evnt => {
                     this.heldMouseButtons[evnt.which] = true;
@@ -121,7 +136,7 @@ namespace Facepunch {
                     this.animate(deltaTime * 0.001);
                 };
             }
-            
+
             protected enableExtension(name: string): void {
                 if (this.context.getExtension(name) == null) {
                     console.warn(`WebGL extension '${name}' is unsupported.`);

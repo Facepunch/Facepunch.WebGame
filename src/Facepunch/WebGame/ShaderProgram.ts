@@ -1,14 +1,14 @@
 namespace Facepunch {
     export namespace WebGame {
         export interface IProgramCtor {
-            new (context: WebGLRenderingContext): ShaderProgram;
+            new (context: IWebGLContext): ShaderProgram;
         }
 
         export abstract class ShaderProgram {
             private static nextId = 0;
 
             readonly id = ShaderProgram.nextId++;
-            readonly context: WebGLRenderingContext;
+            readonly context: IWebGLContext;
 
             private program: WebGLProgram;
             private compiled = false;
@@ -28,7 +28,7 @@ namespace Facepunch {
 
             sortOrder = 0;
 
-            constructor(context: WebGLRenderingContext) {
+            constructor(context: IWebGLContext) {
                 this.context = context;
                 this.name = (this.constructor as any).name;
             }
@@ -263,7 +263,7 @@ namespace Facepunch {
         export abstract class BaseShaderProgram<TMaterialProps extends BaseMaterialProps> extends ShaderProgram {
             private readonly materialPropsCtor: {new():TMaterialProps};
             
-            constructor(context: WebGLRenderingContext, ctor: {new():TMaterialProps}) {
+            constructor(context: IWebGLContext, ctor: {new():TMaterialProps}) {
                 super(context);
 
                 this.materialPropsCtor = ctor;

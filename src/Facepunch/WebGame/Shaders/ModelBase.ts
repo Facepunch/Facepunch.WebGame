@@ -69,7 +69,7 @@ namespace Facepunch {
                 readonly fogColor: Uniform3F;
                 readonly noFog: Uniform1F;
 
-                constructor(context: WebGLRenderingContext, ctor: {new(): TMaterialProps}) {
+                constructor(context: IWebGLContext, ctor: {new(): TMaterialProps}) {
                     super(context, ctor);
 
                     const gl = context;

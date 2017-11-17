@@ -37,7 +37,7 @@ namespace Facepunch {
 
                 readonly errorTexture: UniformSampler;
 
-                constructor(context: WebGLRenderingContext) {
+                constructor(context: IWebGLContext) {
                     super(context);
 
                     const gl = context;

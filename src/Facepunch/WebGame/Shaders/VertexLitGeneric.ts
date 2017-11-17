@@ -40,7 +40,7 @@ namespace Facepunch {
                 readonly alphaTest: Uniform1F;
                 readonly translucent: Uniform1F;
 
-                constructor(context: WebGLRenderingContext) {
+                constructor(context: IWebGLContext) {
                     super(context, VertexLitGenericMaterialProps);
 
                     const gl = context;

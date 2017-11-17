@@ -1,7 +1,7 @@
 namespace Facepunch {
     export namespace WebGame {
         export class MeshManager {
-            private readonly context: WebGLRenderingContext;
+            private readonly context: IWebGLContext;
             private readonly game: Game;
             private readonly groups: MeshGroup[] = [];
 

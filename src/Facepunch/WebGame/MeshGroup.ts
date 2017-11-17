@@ -31,7 +31,7 @@ namespace Facepunch {
 
             readonly id = MeshGroup.nextId++;
 
-            private readonly context: WebGLRenderingContext;
+            private readonly context: IWebGLContext;
             private readonly attribs: VertexAttribute[];
             private readonly attribOffsets: number[];
 
@@ -51,7 +51,7 @@ namespace Facepunch {
             private indexDataLength = 0;
             private subBufferOffset = 0;
 
-            constructor(context: WebGLRenderingContext, attribs: VertexAttribute[]) {
+            constructor(context: IWebGLContext, attribs: VertexAttribute[]) {
                 this.context = context;
 
                 this.indexSize = context.getExtension("OES_element_index_uint") != null ? 4 : 2;

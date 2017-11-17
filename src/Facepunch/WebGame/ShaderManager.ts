@@ -4,9 +4,9 @@ namespace Facepunch {
             private namedPrograms: { [name: string]: ShaderProgram } = {};
             private ctorPrograms: {ctor: IProgramCtor, program: ShaderProgram}[] = [];
 
-            readonly context: WebGLRenderingContext;
+            readonly context: IWebGLContext;
 
-            constructor(context: WebGLRenderingContext) {
+            constructor(context: IWebGLContext) {
                 this.context = context;
             }
 

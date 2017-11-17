@@ -35,6 +35,7 @@ namespace Facepunch {
             Rgb = WebGLRenderingContext.RGB,
             Rgba = WebGLRenderingContext.RGBA,
             DepthComponent = WebGLRenderingContext.DEPTH_COMPONENT,
+            DepthComponent24 = 33190,
             Luminance = WebGLRenderingContext.LUMINANCE
         }
 
@@ -83,9 +84,10 @@ namespace Facepunch {
         }
 
         export class RenderTexture extends Texture {
-            readonly context: WebGLRenderingContext;
+            readonly context: IWebGLContext;
 
             readonly target: TextureTarget;
+            readonly internalFormat: TextureFormat;
             readonly format: TextureFormat;
             readonly type: TextureDataType;
 
@@ -94,13 +96,14 @@ namespace Facepunch {
 
             private handle: WebGLTexture;
 
-            constructor(context: WebGLRenderingContext, target: TextureTarget, format: TextureFormat, type: TextureDataType,
+            constructor(context: IWebGLContext, target: TextureTarget, format: TextureFormat, type: TextureDataType,
                 width: number, height: number) {
                 super();
 
                 this.context = context;
                 this.target = target;
-                this.format = format;
+                this.internalFormat = format;
+                this.format = format === TextureFormat.DepthComponent24 ? TextureFormat.DepthComponent : format;
                 this.type = type;
                 this.handle = context.createTexture();
 
@@ -166,7 +169,7 @@ namespace Facepunch {
                 this.height = height;
 
                 gl.bindTexture(this.target, this.handle);
-                gl.texImage2D(this.target, 0, this.format, width, height, 0, this.format, this.type, null);
+                gl.texImage2D(this.target, 0, this.internalFormat, width, height, 0, this.format, this.type, null);
                 gl.bindTexture(this.target, null);
 
                 this.onResize(width, height);
@@ -225,7 +228,7 @@ namespace Facepunch {
 
             private static readonly channelBuffer: number[] = [0, 0, 0, 0];
 
-            constructor(context: WebGLRenderingContext, width: number, height: number,
+            constructor(context: IWebGLContext, width: number, height: number,
                 format?: TextureFormat, type?: TextureDataType) {
                 super(context, TextureTarget.Texture2D, format === undefined ? TextureFormat.Rgba : format,
                     type === undefined ? TextureDataType.Uint8 : type, width, height);
@@ -432,7 +435,7 @@ namespace Facepunch {
 
         export class TextureUtils {
             private static whiteTexture: ProceduralTexture2D;
-            static getWhiteTexture(context: WebGLRenderingContext): Texture {
+            static getWhiteTexture(context: IWebGLContext): Texture {
                 if (this.whiteTexture != null) return this.whiteTexture;
 
                 this.whiteTexture = new ProceduralTexture2D(context, 1, 1);
@@ -444,7 +447,7 @@ namespace Facepunch {
             }
             
             private static blackTexture: ProceduralTexture2D;
-            static getBlackTexture(context: WebGLRenderingContext): Texture {
+            static getBlackTexture(context: IWebGLContext): Texture {
                 if (this.blackTexture != null) return this.blackTexture;
 
                 this.blackTexture = new ProceduralTexture2D(context, 1, 1);
@@ -456,7 +459,7 @@ namespace Facepunch {
             }
             
             private static translucentTexture: ProceduralTexture2D;
-            static getTranslucentTexture(context: WebGLRenderingContext): Texture {
+            static getTranslucentTexture(context: IWebGLContext): Texture {
                 if (this.translucentTexture != null) return this.translucentTexture;
 
                 this.translucentTexture = new ProceduralTexture2D(context, 1, 1);
@@ -468,7 +471,7 @@ namespace Facepunch {
             }
             
             private static errorTexture: ProceduralTexture2D;
-            static getErrorTexture(context: WebGLRenderingContext): Texture {
+            static getErrorTexture(context: IWebGLContext): Texture {
                 if (this.errorTexture != null) return this.errorTexture;
 
                 const size = 64;
@@ -527,7 +530,7 @@ namespace Facepunch {
         }
 
         export class TextureLoadable extends Texture implements ILoadable {
-            private readonly context: WebGLRenderingContext;
+            private readonly context: IWebGLContext;
             
             readonly url: string;
 
@@ -549,7 +552,7 @@ namespace Facepunch {
 
             private loadProgress = 0;
 
-            constructor(context: WebGLRenderingContext, url: string) {
+            constructor(context: IWebGLContext, url: string) {
                 super();
 
                 this.context = context;

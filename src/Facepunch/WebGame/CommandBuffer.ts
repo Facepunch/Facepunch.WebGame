@@ -1,6 +1,6 @@
 namespace Facepunch {
     export namespace WebGame {
-        export type CommandBufferAction = (gl: WebGLRenderingContext, args: ICommandBufferItem) => void;
+        export type CommandBufferAction = (gl: IWebGLContext, args: ICommandBufferItem) => void;
 
         export interface ICommandBufferItem {
             action?: CommandBufferAction;
@@ -61,7 +61,7 @@ namespace Facepunch {
         }
 
         export class CommandBuffer {
-            private context: WebGLRenderingContext;
+            private context: IWebGLContext;
 
             private commands: ICommandBufferItem[];
 
@@ -82,7 +82,7 @@ namespace Facepunch {
 
             readonly immediate: boolean;
 
-            constructor(context: WebGLRenderingContext, immediate: boolean = false) {
+            constructor(context: IWebGLContext, immediate: boolean = false) {
                 this.context = context;
                 this.immediate = !!immediate;
                 this.clearCommands();
@@ -201,7 +201,7 @@ namespace Facepunch {
                 this.push(this.onClear, { mask: mask });
             }
 
-            private onClear(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onClear(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.clear(args.mask);
             }
 
@@ -216,7 +216,7 @@ namespace Facepunch {
                 this.setCap(cap, true);
             }
 
-            private onEnable(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onEnable(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.enable(args.cap);
             }
 
@@ -224,7 +224,7 @@ namespace Facepunch {
                 this.setCap(cap, false);
             }
 
-            private onDisable(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onDisable(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.disable(args.cap);
             }
 
@@ -235,7 +235,7 @@ namespace Facepunch {
                 this.push(this.onDepthMask, { enabled: flag });
             }
 
-            private onDepthMask(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onDepthMask(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.depthMask(args.enabled);
             }
 
@@ -243,7 +243,7 @@ namespace Facepunch {
                 this.push(this.onBlendFuncSeparate, { x: srcRgb, y: dstRgb, z: srcAlpha, w: dstAlpha });
             }
 
-            private onBlendFuncSeparate(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onBlendFuncSeparate(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.blendFuncSeparate(args.x, args.y, args.z, args.w);
             }
 
@@ -251,7 +251,7 @@ namespace Facepunch {
                 this.push(this.onUseProgram, { program: program });
             }
 
-            private onUseProgram(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onUseProgram(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.useProgram(args.program == null ? null : args.program.getProgram());
             }
 
@@ -272,7 +272,7 @@ namespace Facepunch {
                 this.push(this.onSetUniformParameter, args);
             }
 
-            private onSetUniformParameter(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onSetUniformParameter(gl: IWebGLContext, args: ICommandBufferItem): void {
                 const param = args.parameter;
                 const value = args.parameters[param.id];
                 if (value == null) return;
@@ -319,7 +319,7 @@ namespace Facepunch {
                 this.push(this.onSetUniform1F, { uniform: uniform, x: x });
             }
 
-            private onSetUniform1F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onSetUniform1F(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.uniform1f(args.uniform.getLocation(), args.x);
             }
 
@@ -328,7 +328,7 @@ namespace Facepunch {
                 this.push(this.onSetUniform1I, { uniform: uniform, x: x });
             }
 
-            private onSetUniform1I(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onSetUniform1I(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.uniform1i(args.uniform.getLocation(), args.x);
             }
 
@@ -337,7 +337,7 @@ namespace Facepunch {
                 this.push(this.onSetUniform2F, { uniform: uniform, x: x, y: y });
             }
 
-            private onSetUniform2F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onSetUniform2F(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.uniform2f(args.uniform.getLocation(), args.x, args.y);
             }
 
@@ -346,7 +346,7 @@ namespace Facepunch {
                 this.push(this.onSetUniform3F, { uniform: uniform, x: x, y: y, z: z });
             }
 
-            private onSetUniform3F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onSetUniform3F(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.uniform3f(args.uniform.getLocation(), args.x, args.y, args.z);
             }
 
@@ -355,7 +355,7 @@ namespace Facepunch {
                 this.push(this.onSetUniform4F, { uniform: uniform, x: x, y: y, z: z, w: w });
             }
 
-            private onSetUniform4F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onSetUniform4F(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.uniform4f(args.uniform.getLocation(), args.x, args.y, args.z, args.w);
             }
 
@@ -364,7 +364,7 @@ namespace Facepunch {
                 this.push(this.onSetUniformTextureSize, { uniform: uniform, texture: tex });
             }
 
-            private onSetUniformTextureSize(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onSetUniformTextureSize(gl: IWebGLContext, args: ICommandBufferItem): void {
                 const width = args.texture.getWidth(0);
                 const height = args.texture.getHeight(0);
                 gl.uniform4f(args.uniform.getLocation(), width, height, 1 / width, 1 / height);
@@ -375,7 +375,7 @@ namespace Facepunch {
                 this.push(this.onSetUniformMatrix4, { uniform: uniform, transpose: transpose, values: values });
             }
 
-            private onSetUniformMatrix4(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onSetUniformMatrix4(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.uniformMatrix4fv(args.uniform.getLocation(), args.transpose, args.values);
             }
 
@@ -394,12 +394,12 @@ namespace Facepunch {
                 });
             }
 
-            private onBindTexture(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onBindTexture(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.activeTexture(args.unit);
                 gl.bindTexture(args.target, args.texture.getHandle());
             }
 
-            private onBindAnimatedTexture(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onBindAnimatedTexture(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.activeTexture(args.unit);
                 gl.bindTexture(args.target, args.texture.getHandle(args.commandBuffer.tempCurFrame % args.frames));
             }
@@ -411,7 +411,7 @@ namespace Facepunch {
                 this.push(this.onBindBuffer, { target: target, buffer: buffer });
             }
 
-            private onBindBuffer(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onBindBuffer(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.bindBuffer(args.target, args.buffer);
             }
 
@@ -419,7 +419,7 @@ namespace Facepunch {
                 this.push(this.onEnableVertexAttribArray, { index: index });
             }
 
-            private onEnableVertexAttribArray(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onEnableVertexAttribArray(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.enableVertexAttribArray(args.index);
             }
 
@@ -427,7 +427,7 @@ namespace Facepunch {
                 this.push(this.onDisableVertexAttribArray, { index: index });
             }
 
-            private onDisableVertexAttribArray(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onDisableVertexAttribArray(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.disableVertexAttribArray(args.index);
             }
 
@@ -440,7 +440,7 @@ namespace Facepunch {
                 this.push(this.onVertexAttribPointer, { index: index, size: size, type: type, normalized: normalized, stride: stride, offset: offset });
             }
 
-            private onVertexAttribPointer(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onVertexAttribPointer(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.vertexAttribPointer(args.index, args.size, args.type, args.normalized, args.stride, args.offset);
             }
 
@@ -457,7 +457,7 @@ namespace Facepunch {
                 this.push(this.onDrawElements, { mode: mode, count: count, type: type, offset: offset });
             }
 
-            private onDrawElements(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onDrawElements(gl: IWebGLContext, args: ICommandBufferItem): void {
                 gl.drawElements(args.mode, args.count, args.type, args.offset);
             }
 
@@ -465,7 +465,7 @@ namespace Facepunch {
                 this.push(this.onBindFramebuffer, { framebuffer: buffer, fitView: fitView });
             }
 
-            private onBindFramebuffer(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+            private onBindFramebuffer(gl: IWebGLContext, args: ICommandBufferItem): void {
                 const buffer = args.framebuffer;
 
                 if (buffer == null) {

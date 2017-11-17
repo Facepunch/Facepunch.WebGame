@@ -1,7 +1,7 @@
 namespace Facepunch {
     export namespace WebGame {
         export class FrameBuffer {
-            private context: WebGLRenderingContext;
+            private context: IWebGLContext;
             private frameBuffer: WebGLFramebuffer;
 
             private ownsFrameTexture: boolean;
@@ -11,14 +11,15 @@ namespace Facepunch {
             private depthTexture: RenderTexture;
 
             constructor(tex: RenderTexture);
-            constructor(gl: WebGLRenderingContext, width: number, height: number);
-            constructor(glOrTex: WebGLRenderingContext | RenderTexture, width?: number, height?: number) {
+            constructor(gl: IWebGLContext, width: number, height: number);
+            constructor(glOrTex: IWebGLContext | RenderTexture, width?: number, height?: number) {
                 
-                let gl: WebGLRenderingContext;
+                let gl: IWebGLContext;
 
                 if (width !== undefined) {
                     this.ownsFrameTexture = true;
-                    this.context = gl = glOrTex as WebGLRenderingContext;
+                    this.context = gl = glOrTex as IWebGLContext;
+
                     this.frameTexture = new RenderTexture(gl,
                         TextureTarget.Texture2D, TextureFormat.Rgba,
                         TextureDataType.Uint8, width, height);
@@ -56,9 +57,13 @@ namespace Facepunch {
                 const gl = this.context;
 
                 if (existing == null) {
+                    let format = gl.webgl2
+                        ? TextureFormat.DepthComponent24
+                        : TextureFormat.DepthComponent;
+
                     this.ownsDepthTexture = true;
                     this.depthTexture = new RenderTexture(gl, TextureTarget.Texture2D,
-                        TextureFormat.DepthComponent, TextureDataType.Uint32,
+                        format, TextureDataType.Uint32,
                         this.frameTexture.getWidth(0), this.frameTexture.getHeight(0));
                 } else {
                     this.ownsDepthTexture = false;
