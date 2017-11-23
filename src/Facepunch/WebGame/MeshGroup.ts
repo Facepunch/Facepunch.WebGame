@@ -35,8 +35,8 @@ namespace Facepunch {
             private readonly attribs: VertexAttribute[];
             private readonly attribOffsets: number[];
 
-            private readonly vertexLength: number;
-            private readonly indexSize: number;
+            readonly vertexLength: number;
+            readonly indexSize: number;
 
             private readonly maxVertexDataLength: number;
             private readonly maxSubBufferLength: number;
@@ -72,6 +72,12 @@ namespace Facepunch {
 
                 this.vertexBuffer = context.createBuffer();
                 this.indexBuffer = context.createBuffer();
+            }
+
+            clear(): void {
+                this.vertexDataLength = 0;
+                this.indexDataLength = 0;
+                this.subBufferOffset = 0;
             }
 
             compareTo(other: MeshGroup): number {
@@ -117,6 +123,56 @@ namespace Facepunch {
                 }
             }
 
+            addVertexData(data: Float32Array, meshHandle?: MeshHandle): number {
+                const gl = this.context;
+
+                // TODO: maybe validate MeshHandle if given
+
+                const vertexOffset = this.vertexDataLength;
+                const oldVertexData = this.vertexData;
+                this.vertexData = this.ensureCapacity(this.vertexData,
+                    this.vertexDataLength + data.length,
+                    size => new Float32Array(size));
+
+                this.vertexData.set(data, vertexOffset);
+                this.vertexDataLength += data.length;
+
+                if (this.vertexDataLength - this.subBufferOffset > this.maxSubBufferLength) {
+                    this.subBufferOffset = vertexOffset;
+                }
+
+                this.updateBuffer(gl.ARRAY_BUFFER, this.vertexBuffer, this.vertexData, data, oldVertexData, vertexOffset);
+
+                return vertexOffset;
+            }
+
+            addIndexData(data: Uint32Array | Uint16Array, meshHandle?: MeshHandle): number {
+                if (data.BYTES_PER_ELEMENT !== this.indexSize) {
+                    throw new Error(`Expected index data element size to be ${this.indexSize}, not ${data.BYTES_PER_ELEMENT}.`);
+                }
+
+                // TODO: maybe validate MeshHandle if given
+
+                const gl = this.context;
+
+                const indexOffset = this.indexDataLength;
+                const oldIndexData = this.indexData;
+                this.indexData = this.ensureCapacity(this.indexData,
+                    this.indexDataLength + data.length,
+                    this.indexSize === 4 ? size => new Uint32Array(size) : size => new Uint16Array(size));
+
+                this.indexData.set(data, indexOffset);
+                this.indexDataLength += data.length;
+
+                this.updateBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer, this.indexData, data, oldIndexData, indexOffset);
+
+                if (meshHandle != null) {
+                    meshHandle.indexCount += data.length;
+                }
+
+                return indexOffset;
+            }
+
             addMeshData(data: IMeshData, getMaterial: (materialIndex: number) => Material, target: MeshHandle[]): void {
                 if (!this.canAddMeshData(data)) {
                     throw new Error("Target MeshGroup is incompatible with the given IMeshData.");
@@ -127,25 +183,11 @@ namespace Facepunch {
                 const newVertices = new Float32Array(data.vertices);
                 const newIndices = this.indexSize === 4 ? new Uint32Array(data.indices) : new Uint16Array(data.indices);
 
-                const vertexOffset = this.vertexDataLength;
                 const oldVertexData = this.vertexData;
-                this.vertexData = this.ensureCapacity(this.vertexData,
-                    this.vertexDataLength + newVertices.length,
-                    size => new Float32Array(size));
-
-                const indexOffset = this.indexDataLength;
                 const oldIndexData = this.indexData;
-                this.indexData = this.ensureCapacity(this.indexData,
-                    this.indexDataLength + newIndices.length,
-                    this.indexSize === 4 ? size => new Uint32Array(size) : size => new Uint16Array(size));
 
-                this.vertexData.set(newVertices, vertexOffset);
-                this.vertexDataLength += newVertices.length;
-
-                if (this.vertexDataLength - this.subBufferOffset > this.maxSubBufferLength) {
-                    this.subBufferOffset = vertexOffset;
-                }
-
+                const vertexOffset = this.addVertexData(newVertices);
+                
                 const elementOffset = Math.round(vertexOffset / this.vertexLength) - this.subBufferOffset;
                 if (elementOffset !== 0) {
                     for (let i = 0, iEnd = newIndices.length; i < iEnd; ++i) {
@@ -153,11 +195,7 @@ namespace Facepunch {
                     }
                 }
 
-                this.indexData.set(newIndices, indexOffset);
-                this.indexDataLength += newIndices.length;
-
-                this.updateBuffer(gl.ARRAY_BUFFER, this.vertexBuffer, this.vertexData, newVertices, oldVertexData, vertexOffset);
-                this.updateBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer, this.indexData, newIndices, oldIndexData, indexOffset);
+                const indexOffset = this.addIndexData(newIndices);
 
                 for (let i = 0; i < data.elements.length; ++i) {
                     const element = data.elements[i];

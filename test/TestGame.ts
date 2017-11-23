@@ -6,6 +6,7 @@ class TestGame extends WebGame.Game {
     private mainCamera: WebGame.PerspectiveCamera;
 
     private testObjects: WebGame.StaticProp[];
+    private testLine: WebGame.DebugLine;
 
     private time = 0;
 
@@ -27,6 +28,10 @@ class TestGame extends WebGame.Game {
 
         const model = this.modelLoader.load("models/military_case_02.model.json");
         const color = new Facepunch.Vector3(1, 1, 1);
+        const pos = new Facepunch.Vector3();
+
+        this.testLine = new WebGame.DebugLine(this);
+        this.testLine.setColor({x: 1.0, y: 0.0, z: 1.0}, {x: 0.0, y: 1.0, z: 0.0});
 
         for (let x = -5; x < 5; ++x) {
             for (let y = -5; y < 5; ++y) {
@@ -47,9 +52,20 @@ class TestGame extends WebGame.Game {
                 obj.setColorTint(color);
                 obj.setModel(model);
 
+                obj.getPosition(pos);
+                pos.z = 192 * scaleX * scaleZ;
+
+                if (y === -1) {
+                    this.testLine.moveTo(pos);
+                } else {
+                    this.testLine.lineTo(pos);
+                }
+
                 this.testObjects.push(obj);
             }
         }
+
+        this.testLine.update();
 
         const gl = this.context;
 
@@ -129,5 +145,6 @@ class TestGame extends WebGame.Game {
 
     populateDrawList(drawList: WebGame.DrawList, camera: WebGame.Camera): void {
         drawList.addItems(this.testObjects);
+        drawList.addItem(this.testLine);
     }
 }

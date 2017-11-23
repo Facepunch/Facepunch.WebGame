@@ -153,8 +153,7 @@ namespace Facepunch {
                 vector.applyQuaternion(this.rotation);
             }
 
-            setScale(value: IVector3 | number): void
-            {
+            setScale(value: IVector3 | number): void {
                 if (typeof value === "number") {
                     this.scale.set(value, value, value);
                 } else {

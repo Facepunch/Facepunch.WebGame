@@ -1,6 +1,9 @@
 namespace Facepunch {
     export namespace WebGame {
         export enum DrawMode {
+            Lines = WebGLRenderingContext.LINES,
+            LineStrip = WebGLRenderingContext.LINE_STRIP,
+            LineLoop = WebGLRenderingContext.LINE_LOOP,
             Triangles = WebGLRenderingContext.TRIANGLES,
             TriangleStrip = WebGLRenderingContext.TRIANGLE_STRIP,
             TriangleFan = WebGLRenderingContext.TRIANGLE_FAN
@@ -17,7 +20,7 @@ namespace Facepunch {
             readonly vertexOffset: number;
             readonly drawMode: DrawMode;
             readonly indexOffset: number;
-            readonly indexCount: number;
+            indexCount: number;
 
             constructor(group: MeshGroup, vertexOffset: number, drawMode: DrawMode,
                 indexOffset: number, indexCount: number, material: Material,

@@ -73,6 +73,7 @@ namespace Facepunch {
                 this.getFrustumBounds(near, far, bounds);
 
                 const xDiff = bounds.max.x - bounds.min.x;
+                const yDiff = bounds.max.y - bounds.min.y;
                 const zDiff = bounds.max.z - bounds.min.z;
 
                 // TODO: Reposition based on bounds

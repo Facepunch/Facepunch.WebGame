@@ -7,35 +7,6 @@ namespace Facepunch {
             }
 
             export class VertexLitGeneric extends ModelBase<VertexLitGenericMaterialProps> {
-                static readonly vertSource = `
-                    attribute vec3 aColor;
-
-                    varying vec3 vColor;
-
-                    void main()
-                    {
-                        Base_main();
-                        vColor = aColor * (1.0 / 255.0);
-                    }`;
-                    
-                static readonly fragSource = `
-                    varying vec3 vColor;
-
-                    uniform float uAlpha;
-
-                    uniform float uAlphaTest;
-                    uniform float uTranslucent;
-
-                    void main()
-                    {
-                        vec4 texSample = texture2D(uBaseTexture, vTextureCoord);
-                        if (texSample.a < uAlphaTest - 0.5) discard;
-
-                        vec3 color = ApplyFog(texSample.rgb * vColor);
-
-                        gl_FragColor = vec4(color, mix(1.0, texSample.a, uTranslucent) * uAlpha);
-                    }`;
-
                 readonly alpha: Uniform1F;
                 readonly alphaTest: Uniform1F;
                 readonly translucent: Uniform1F;
@@ -47,14 +18,40 @@ namespace Facepunch {
 
                     this.addAttribute("aColor", VertexAttribute.rgb);
 
-                    this.includeShaderSource(gl.VERTEX_SHADER, VertexLitGeneric.vertSource);
-                    this.includeShaderSource(gl.FRAGMENT_SHADER, VertexLitGeneric.fragSource);
-                    
+                    this.includeShaderSource(gl.VERTEX_SHADER, `
+                        attribute vec3 aColor;
+
+                        varying vec3 vColor;
+
+                        void main()
+                        {
+                            Base_main();
+                            vColor = aColor * (1.0 / 255.0);
+                        }`);
+
+                    this.includeShaderSource(gl.FRAGMENT_SHADER, `
+                        varying vec3 vColor;
+
+                        uniform float uAlpha;
+
+                        uniform float uAlphaTest;
+                        uniform float uTranslucent;
+
+                        void main()
+                        {
+                            vec4 texSample = texture2D(uBaseTexture, vTextureCoord);
+                            if (texSample.a < uAlphaTest - 0.5) discard;
+
+                            vec3 color = ApplyFog(texSample.rgb * vColor);
+
+                            gl_FragColor = vec4(color, mix(1.0, texSample.a, uTranslucent) * uAlpha);
+                        }`);
+
                     this.alpha = this.addUniform("uAlpha", Uniform1F);
                     this.alphaTest = this.addUniform("uAlphaTest", Uniform1F);
                     this.translucent = this.addUniform("uTranslucent", Uniform1F);
                 
-                    this.compile();    
+                    this.compile();
                 }
 
                 bufferMaterialProps(buf: CommandBuffer, props: VertexLitGenericMaterialProps): void {
