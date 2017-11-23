@@ -53,6 +53,9 @@ namespace Facepunch {
                             gl_FragColor = vec4(mod(vProgress - uPhase, 2.0) < 1.0 ? uColor0 : uColor1, 1.0);
                         }`);
 
+                    this.addAttribute("aPosition", VertexAttribute.position);
+                    this.addAttribute("aProgress", VertexAttribute.alpha);
+
                     this.projectionMatrix = this.addUniform("uProjection", UniformMatrix4);
                     this.viewMatrix = this.addUniform("uView", UniformMatrix4);
                     this.modelMatrix = this.addUniform("uModel", UniformMatrix4);

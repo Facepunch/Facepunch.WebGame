@@ -86,10 +86,11 @@ namespace Facepunch {
                 this.meshChanged = true;
                 this.lastPos.sub(pos);
                 this.progress += this.lastPos.length() * progressScale;
+                this.lastPos.copy(pos);
 
                 const index = this.addVertex(pos, this.progress);
 
-                indexData[0] = index - 1;
+                indexData[0] = Math.max(0, index - 1);
                 indexData[1] = index;
 
                 this.meshGroup.addIndexData(indexData, this.meshHandle);
@@ -100,7 +101,7 @@ namespace Facepunch {
                     this.meshChanged = false;
 
                     this.drawable.clearMeshHandles();
-    
+
                     if (this.meshHandle.indexCount > 0) {
                         this.drawable.addMeshHandles(this.meshHandles);
                     }

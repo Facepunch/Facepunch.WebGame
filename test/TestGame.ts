@@ -55,10 +55,10 @@ class TestGame extends WebGame.Game {
                 obj.getPosition(pos);
                 pos.z = 192 * scaleX * scaleZ;
 
-                if (y === -1) {
+                if (y === -5) {
                     this.testLine.moveTo(pos);
                 } else {
-                    this.testLine.lineTo(pos);
+                    this.testLine.lineTo(pos, 1 / 32);
                 }
 
                 this.testObjects.push(obj);
