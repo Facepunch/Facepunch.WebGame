@@ -247,7 +247,7 @@ namespace Facepunch {
             private readonly lightDirParams = new Float32Array(3);
 
             populateCommandBufferParameters(buf: CommandBuffer): void {
-                this.timeParams[0] = this.getLastUpdateTime();
+                this.timeParams[0] = this.getLastUpdateTime() * 0.001;
 
                 this.screenParams[0] = this.getWidth();
                 this.screenParams[1] = this.getHeight();

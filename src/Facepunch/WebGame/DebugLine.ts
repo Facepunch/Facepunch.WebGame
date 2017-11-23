@@ -46,6 +46,11 @@ namespace Facepunch {
                 this.materialChanged = true;
             }
 
+            setFrequency(value: number): void {
+                this.materialProps.frequency = value;
+                this.materialChanged = true;
+            }
+
             setColor(color: IVector3): void;
             setColor(color0: IVector3, color1: IVector3): void;
             setColor(color0: IVector3, color1?: IVector3): void {

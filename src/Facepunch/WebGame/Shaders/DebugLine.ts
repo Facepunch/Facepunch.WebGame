@@ -6,6 +6,7 @@ namespace Facepunch {
                 color0 = new Vector3(1.0, 1.0, 1.0);
                 color1 = new Vector3(1.0, 1.0, 1.0);
                 phase = 0;
+                frequency = 1;
             }
 
             export class DebugLine extends BaseShaderProgram<DebugLineProps> {
@@ -13,9 +14,11 @@ namespace Facepunch {
                 readonly viewMatrix: UniformMatrix4;
                 readonly modelMatrix: UniformMatrix4;
 
+                readonly time: Uniform4F;
                 readonly color0: Uniform3F;
                 readonly color1: Uniform3F;
                 readonly phase: Uniform1F;
+                readonly frequency: Uniform1F;
 
                 constructor(context: WebGLRenderingContext) {
                     super(context, DebugLineProps);
@@ -44,13 +47,15 @@ namespace Facepunch {
 
                         varying float vProgress;
 
+                        uniform vec4 uTime;
                         uniform vec3 uColor0;
                         uniform vec3 uColor1;
                         uniform float uPhase;
+                        uniform float uFrequency;
 
                         void main()
                         {
-                            gl_FragColor = vec4(mod(vProgress - uPhase, 2.0) < 1.0 ? uColor0 : uColor1, 1.0);
+                            gl_FragColor = vec4(mod(vProgress - uPhase - uTime.x * uFrequency, 2.0) < 1.0 ? uColor0 : uColor1, 1.0);
                         }`);
 
                     this.addAttribute("aPosition", VertexAttribute.position);
@@ -60,9 +65,11 @@ namespace Facepunch {
                     this.viewMatrix = this.addUniform("uView", UniformMatrix4);
                     this.modelMatrix = this.addUniform("uModel", UniformMatrix4);
 
+                    this.time = this.addUniform("uTime", Uniform4F);
                     this.color0 = this.addUniform("uColor0", Uniform3F);
                     this.color1 = this.addUniform("uColor1", Uniform3F);
                     this.phase = this.addUniform("uPhase", Uniform1F);
+                    this.frequency = this.addUniform("uFrequency", Uniform1F);
 
                     this.compile();
                 }
@@ -91,9 +98,11 @@ namespace Facepunch {
 
                     const gl = this.context;
 
+                    this.time.bufferParameter(buf, Game.timeInfoParam);
                     this.color0.bufferValue(buf, props.color0.x, props.color0.y, props.color0.z);
                     this.color1.bufferValue(buf, props.color1.x, props.color1.y, props.color1.z);
                     this.phase.bufferValue(buf, props.phase);
+                    this.frequency.bufferValue(buf, props.frequency);
                 }
             }
         }
