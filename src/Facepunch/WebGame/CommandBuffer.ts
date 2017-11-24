@@ -6,7 +6,6 @@ namespace Facepunch {
             action?: CommandBufferAction;
 
             commandBuffer?: CommandBuffer;
-            parameters?: { [param: number]: Float32Array | Texture };
             parameter?: CommandBufferParameter;
             program?: ShaderProgram;
             uniform?: Uniform;
@@ -80,7 +79,7 @@ namespace Facepunch {
             private tempSpareTime = 0;
             private tempCurFrame = 0;
 
-            readonly immediate: boolean;
+            private immediate: boolean;
 
             constructor(context: WebGLRenderingContext, immediate: boolean = false) {
                 this.context = context;
@@ -124,8 +123,8 @@ namespace Facepunch {
                         if (value !== undefined) params.push(`${name}: ${value}`);
                     }
                     
-                    if (command.parameter !== undefined && command.parameters !== undefined) {
-                        const value = command.parameters[command.parameter.id];
+                    if (command.parameter !== undefined && this.parameters !== undefined) {
+                        const value = this.parameters[command.parameter.id];
 
                         if (value === undefined) {
                             params.push("undefined");
@@ -189,7 +188,7 @@ namespace Facepunch {
             }
 
             private push(action: CommandBufferAction, args: ICommandBufferItem): void {
-                if (this.immediate) action(this.context, args);
+                if (this.immediate) throw new Error("CommandBuffer.push was called in immediate mode!");
                 else {
                     args.action = action;
                     this.commands.push(args);
@@ -198,18 +197,35 @@ namespace Facepunch {
             }
 
             clear(mask: number): void {
-                this.push(this.onClear, { mask: mask });
+                if (this.immediate) this.context.clear(mask);
+                else this.push(this.onClear, { mask: mask });
             }
 
             private onClear(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
                 gl.clear(args.mask);
             }
 
+            dynamicMaterial(callback: (buf: CommandBuffer) => void): void {
+                if (this.immediate) {
+                    callback(this);
+                    return;
+                }
+
+                const buf = this;
+                this.push((gl, args) => {
+                    const wasImmediate = this.immediate;
+                    this.immediate = true;
+                    callback(buf);
+                    this.immediate = wasImmediate;
+                }, {});
+            }
+
             private setCap(cap: number, enabled: boolean): void {
                 if (this.capStates[cap] === enabled) return;
                 this.capStates[cap] = enabled;
 
-                this.push(enabled ? this.onEnable : this.onDisable, { cap: cap });
+                if (this.immediate) (enabled ? this.context.enable : this.context.disable)(cap);
+                else this.push(enabled ? this.onEnable : this.onDisable, { cap: cap });
             }
 
             enable(cap: number): void {
@@ -230,9 +246,10 @@ namespace Facepunch {
 
             depthMask(flag: boolean): void {
                 if (this.depthMaskState === flag) return;
-
                 this.depthMaskState = flag;
-                this.push(this.onDepthMask, { enabled: flag });
+
+                if (this.immediate) this.context.depthMask(flag);
+                else this.push(this.onDepthMask, { enabled: flag });
             }
 
             private onDepthMask(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -240,7 +257,8 @@ namespace Facepunch {
             }
 
             blendFuncSeparate(srcRgb: number, dstRgb: number, srcAlpha: number, dstAlpha: number): void {
-                this.push(this.onBlendFuncSeparate, { x: srcRgb, y: dstRgb, z: srcAlpha, w: dstAlpha });
+                if (this.immediate) this.context.blendFuncSeparate(srcRgb, dstRgb, srcAlpha, dstAlpha);
+                else this.push(this.onBlendFuncSeparate, { x: srcRgb, y: dstRgb, z: srcAlpha, w: dstAlpha });
             }
 
             private onBlendFuncSeparate(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -248,7 +266,8 @@ namespace Facepunch {
             }
 
             useProgram(program: ShaderProgram): void {
-                this.push(this.onUseProgram, { program: program });
+                if (this.immediate) this.context.useProgram(program == null ? null : program.getProgram());
+                else this.push(this.onUseProgram, { program: program });
             }
 
             private onUseProgram(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -260,7 +279,7 @@ namespace Facepunch {
                 const loc = uniform.getLocation();
                 if (loc == null) return;
 
-                const args: ICommandBufferItem = { uniform: uniform, parameters: this.parameters, parameter: parameter };
+                const args: ICommandBufferItem = { uniform: uniform, commandBuffer: this, parameter: parameter };
 
                 if (uniform.isSampler) {
                     const sampler = uniform as UniformSampler;
@@ -269,54 +288,60 @@ namespace Facepunch {
                     args.unit = sampler.getTexUnit();
                 }
 
-                this.push(this.onSetUniformParameter, args);
+                if (this.immediate) this.setUniformParameterInternal(uniform, parameter, args.unit);
+                else this.push(this.onSetUniformParameter, args);
             }
 
-            private onSetUniformParameter(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
-                const param = args.parameter;
-                const value = args.parameters[param.id];
+            private setUniformParameterInternal(uniform: Uniform, param: CommandBufferParameter, unit?: number): void {
+                const gl = this.context;
+                const value = this.parameters[param.id];
                 if (value == null) return;
 
                 switch (param.type) {
                 case UniformType.Matrix4:
-                    gl.uniformMatrix4fv(args.uniform.getLocation(), false, value as Float32Array);
+                    gl.uniformMatrix4fv(uniform.getLocation(), false, value as Float32Array);
                     break;
                 case UniformType.Float:
-                    gl.uniform1f(args.uniform.getLocation(), value[0]);
+                    gl.uniform1f(uniform.getLocation(), value[0]);
                     break;
                 case UniformType.Float2:
-                    gl.uniform2f(args.uniform.getLocation(), value[0], value[1]);
+                    gl.uniform2f(uniform.getLocation(), value[0], value[1]);
                     break;
                 case UniformType.Float3:
-                    gl.uniform3f(args.uniform.getLocation(), value[0], value[1], value[2]);
+                    gl.uniform3f(uniform.getLocation(), value[0], value[1], value[2]);
                     break;
                 case UniformType.Float4:
-                    gl.uniform4f(args.uniform.getLocation(), value[0], value[1], value[2], value[3]);
+                    gl.uniform4f(uniform.getLocation(), value[0], value[1], value[2], value[3]);
                     break;
                 case UniformType.Texture:
                     const tex = value as Texture;
-                    const uniform = args.uniform as UniformSampler;
+                    const sampler = uniform as UniformSampler;
 
-                    gl.activeTexture(gl.TEXTURE0 + args.unit);
+                    gl.activeTexture(gl.TEXTURE0 + unit);
                     gl.bindTexture(tex.getTarget(), tex.getHandle());
 
-                    if (!uniform.hasSizeUniform()) break;
+                    if (!sampler.hasSizeUniform()) break;
 
                     if (tex != null) {
                         const width = tex.getWidth(0);
                         const height = tex.getHeight(0);
-                        gl.uniform4f(uniform.getSizeUniform().getLocation(), width, height, 1 / width, 1 / height);
+                        gl.uniform4f(sampler.getSizeUniform().getLocation(), width, height, 1 / width, 1 / height);
                     } else {
-                        gl.uniform4f(uniform.getSizeUniform().getLocation(), 1, 1, 1, 1);
+                        gl.uniform4f(sampler.getSizeUniform().getLocation(), 1, 1, 1, 1);
                     }
 
                     break;
                 }
             }
 
+            private onSetUniformParameter(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
+                args.commandBuffer.setUniformParameterInternal(args.uniform, args.parameter, args.unit);
+            }
+
             setUniform1F(uniform: Uniform, x: number): void {
                 if (uniform == null || uniform.getLocation() == null) return;
-                this.push(this.onSetUniform1F, { uniform: uniform, x: x });
+                if (this.immediate) this.context.uniform1f(uniform.getLocation(), x);
+                else this.push(this.onSetUniform1F, { uniform: uniform, x: x });
             }
 
             private onSetUniform1F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -325,7 +350,8 @@ namespace Facepunch {
 
             setUniform1I(uniform: Uniform, x: number): void {
                 if (uniform == null || uniform.getLocation() == null) return;
-                this.push(this.onSetUniform1I, { uniform: uniform, x: x });
+                if (this.immediate) this.context.uniform1i(uniform.getLocation(), x);
+                else this.push(this.onSetUniform1I, { uniform: uniform, x: x });
             }
 
             private onSetUniform1I(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -334,7 +360,8 @@ namespace Facepunch {
 
             setUniform2F(uniform: Uniform, x: number, y: number): void {
                 if (uniform == null || uniform.getLocation() == null) return;
-                this.push(this.onSetUniform2F, { uniform: uniform, x: x, y: y });
+                if (this.immediate) this.context.uniform2f(uniform.getLocation(), x, y);
+                else this.push(this.onSetUniform2F, { uniform: uniform, x: x, y: y });
             }
 
             private onSetUniform2F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -343,7 +370,8 @@ namespace Facepunch {
 
             setUniform3F(uniform: Uniform, x: number, y: number, z: number): void {
                 if (uniform == null || uniform.getLocation() == null) return;
-                this.push(this.onSetUniform3F, { uniform: uniform, x: x, y: y, z: z });
+                if (this.immediate) this.context.uniform3f(uniform.getLocation(), x, y, z);
+                else this.push(this.onSetUniform3F, { uniform: uniform, x: x, y: y, z: z });
             }
 
             private onSetUniform3F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -352,7 +380,8 @@ namespace Facepunch {
 
             setUniform4F(uniform: Uniform, x: number, y: number, z: number, w: number): void {
                 if (uniform == null || uniform.getLocation() == null) return;
-                this.push(this.onSetUniform4F, { uniform: uniform, x: x, y: y, z: z, w: w });
+                if (this.immediate) this.context.uniform4f(uniform.getLocation(), x, y, z, w);
+                else this.push(this.onSetUniform4F, { uniform: uniform, x: x, y: y, z: z, w: w });
             }
 
             private onSetUniform4F(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -361,7 +390,11 @@ namespace Facepunch {
 
             setUniformTextureSize(uniform: Uniform4F, tex: Texture): void {
                 if (uniform == null || uniform.getLocation() == null) return;
-                this.push(this.onSetUniformTextureSize, { uniform: uniform, texture: tex });
+                if (this.immediate) {
+                    const width = tex.getWidth(0);
+                    const height = tex.getHeight(0);
+                    this.context.uniform4f(uniform.getLocation(), width, height, 1 / width, 1 / height);
+                } else this.push(this.onSetUniformTextureSize, { uniform: uniform, texture: tex });
             }
 
             private onSetUniformTextureSize(gl: WebGLRenderingContext, args: ICommandBufferItem): void {
@@ -372,7 +405,8 @@ namespace Facepunch {
 
             setUniformMatrix4(uniform: Uniform, transpose: boolean, values: Float32Array): void {
                 if (uniform == null || uniform.getLocation() == null) return;
-                this.push(this.onSetUniformMatrix4, { uniform: uniform, transpose: transpose, values: values });
+                if (this.immediate) this.context.uniformMatrix4fv(uniform.getLocation(), transpose, values);
+                else this.push(this.onSetUniformMatrix4, { uniform: uniform, transpose: transpose, values: values });
             }
 
             private onSetUniformMatrix4(gl: WebGLRenderingContext, args: ICommandBufferItem): void {

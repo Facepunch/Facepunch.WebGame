@@ -56,8 +56,8 @@ namespace Facepunch {
                 }
             }
 
-            createMaterial(ctor: IProgramCtor): Material {
-                return new Material(this.getFromCtor(ctor));
+            createMaterial(ctor: IProgramCtor, isDynamic: boolean): Material {
+                return new Material(this.getFromCtor(ctor), isDynamic);
             }
 
             dispose(): void {

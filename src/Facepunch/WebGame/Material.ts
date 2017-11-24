@@ -32,22 +32,29 @@ namespace Facepunch {
             program: ShaderProgram;
             enabled = true;
 
-            constructor();
-            constructor(program: ShaderProgram);
-            constructor(program?: ShaderProgram) {
+            readonly isDynamic: boolean;
+
+            constructor(isDynamic: boolean);
+            constructor(program: ShaderProgram, isDynamic: boolean);
+            constructor(program?: ShaderProgram | boolean, isDynamic?: boolean) {
                 super();
 
-                this.program = program;
+                if (typeof program === "boolean") {
+                    this.isDynamic = program;
+                } else {
+                    this.program = program;
+                    this.isDynamic = isDynamic !== undefined && isDynamic;
+                }
 
-                if (program != null) {
-                    this.properties = program.createMaterialProperties();
+                if (this.program != null) {
+                    this.properties = this.program.createMaterialProperties();
                 } else {
                     this.properties = {};
                 }
             }
 
-            clone(): Material {
-                return new MaterialClone(this);
+            clone(isDynamic: boolean = false): Material {
+                return new MaterialClone(this, isDynamic);
             }
 
             isLoaded(): boolean {
@@ -56,8 +63,8 @@ namespace Facepunch {
         }
 
         export class MaterialClone extends Material {
-            constructor(base: Material) {
-                super();
+            constructor(base: Material, isDynamic: boolean) {
+                super(isDynamic);
 
                 base.addDependent(this);
 
@@ -91,7 +98,7 @@ namespace Facepunch {
             private loadProgress = 0;
 
             constructor(game: Game, url?: string) {
-                super();
+                super(false);
 
                 this.game = game;
                 this.url = url;

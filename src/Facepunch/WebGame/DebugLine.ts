@@ -24,7 +24,7 @@ namespace Facepunch {
                 super();
 
                 this.game = game;
-                this.material = game.shaders.createMaterial(Shaders.DebugLine);
+                this.material = game.shaders.createMaterial(Shaders.DebugLine, true);
                 this.materialProps = this.material.properties as Shaders.DebugLineProps;
                 this.meshGroup = new MeshGroup(game.context, this.attribs);
                 this.meshHandle = new MeshHandle(this.meshGroup, 0, DrawMode.Lines, 0, 0, this.material);

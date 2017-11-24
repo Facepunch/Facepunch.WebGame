@@ -205,7 +205,7 @@ namespace Facepunch {
                     elements: [
                         {
                             mode: DrawMode.Triangles,
-                            material: this.game.shaders.createMaterial(Facepunch.WebGame.Shaders.ComposeFrame),
+                            material: this.game.shaders.createMaterial(Facepunch.WebGame.Shaders.ComposeFrame, false),
                             indexOffset: 0,
                             indexCount: 6
                         }
