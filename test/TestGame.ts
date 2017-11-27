@@ -95,7 +95,7 @@ class TestGame extends WebGame.Game {
 
     protected onMouseLook(delta: Facepunch.Vector2): void {
         super.onMouseLook(delta);
-
+        
         this.lookAngs.sub(delta.multiplyScalar(1 / 800));
         this.updateCameraAngles();
     }
