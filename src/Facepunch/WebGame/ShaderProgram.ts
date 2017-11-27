@@ -276,9 +276,9 @@ namespace Facepunch {
             bufferMaterial(buf: CommandBuffer, material: Material): void {
                 const props = material.properties as TMaterialProps;
                 if (material.isDynamic) {
-                    this.bufferMaterialProps(buf, props);
-                } else {
                     buf.dynamicMaterial(buf => this.bufferMaterialProps(buf, props));
+                } else {
+                    this.bufferMaterialProps(buf, props);
                 }
             }
             

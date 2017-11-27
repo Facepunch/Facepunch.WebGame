@@ -18,7 +18,6 @@ namespace Facepunch {
             private readonly vertBuffer = new Float32Array(6);
 
             private meshChanged = false;
-            private materialChanged = false;
 
             constructor(game: Game) {
                 super();
@@ -43,12 +42,10 @@ namespace Facepunch {
 
             setPhase(value: number): void {
                 this.materialProps.phase = value;
-                this.materialChanged = true;
             }
 
             setFrequency(value: number): void {
                 this.materialProps.frequency = value;
-                this.materialChanged = true;
             }
 
             setColor(color: IVector3): void;
@@ -58,8 +55,6 @@ namespace Facepunch {
 
                 this.materialProps.color0.copy(color0);
                 this.materialProps.color1.copy(color1);
-
-                this.materialChanged = true;
             }
 
             private lastPos = new Vector3();
@@ -110,12 +105,6 @@ namespace Facepunch {
                     if (this.meshHandle.indexCount > 0) {
                         this.drawable.addMeshHandles(this.meshHandles);
                     }
-                }
-
-                if (this.materialChanged) {
-                    this.materialChanged = false;
-
-                    this.invalidateDrawLists();
                 }
             }
 

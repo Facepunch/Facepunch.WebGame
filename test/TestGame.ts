@@ -105,6 +105,10 @@ class TestGame extends WebGame.Game {
     protected onUpdateFrame(dt: number): void {
         super.onUpdateFrame(dt);
 
+        this.testLine.setColor(
+            {x: 1, y: Math.sin(this.getLastUpdateTime() / 1000 * Math.PI) * 0.5 + 0.5, z: 1},
+            {x: 0, y: 0, z: 0})
+
         if (this.isPointerLocked()) {
             this.move.set(0, 0, 0);
             const moveSpeed = 512 * dt;

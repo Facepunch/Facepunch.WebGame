@@ -51,7 +51,7 @@ namespace Facepunch {
             }
 
             bufferValue(buf: CommandBuffer, x: number): void {
-                if (this.x === x) return;
+                if (!buf.immediate && this.x === x) return;
                 this.x = x;
                 buf.setUniform1F(this, x);
             }
@@ -70,7 +70,7 @@ namespace Facepunch {
             }
 
             bufferValue(buf: CommandBuffer, x: number): void {
-                if (this.x === x) return;
+                if (!buf.immediate && this.x === x) return;
                 this.x = x;
                 buf.setUniform1I(this, x);
             }
@@ -91,7 +91,7 @@ namespace Facepunch {
             }
 
             bufferValue(buf: CommandBuffer, x: number, y: number): void {
-                if (this.x === x && this.y === y) return;
+                if (!buf.immediate && this.x === x && this.y === y) return;
                 this.x = x;
                 this.y = y;
                 buf.setUniform2F(this, x, y);
@@ -115,7 +115,7 @@ namespace Facepunch {
             }
 
             bufferValue(buf: CommandBuffer, x: number, y: number, z: number): void {
-                if (this.x === x && this.y === y && this.z === z) return;
+                if (!buf.immediate && this.x === x && this.y === y && this.z === z) return;
                 this.x = x;
                 this.y = y;
                 this.z = z;
@@ -142,7 +142,7 @@ namespace Facepunch {
             }
 
             bufferValue(buf: CommandBuffer, x: number, y: number, z: number, w: number): void {
-                if (this.x === x && this.y === y && this.z === z && this.w === w) return;
+                if (!buf.immediate && this.x === x && this.y === y && this.z === z && this.w === w) return;
                 this.x = x;
                 this.y = y;
                 this.z = z;
@@ -199,7 +199,7 @@ namespace Facepunch {
 
                 buf.bindTexture(this.texUnit, tex);
 
-                if (this.value !== this.texUnit) {
+                if (!buf.immediate && this.value !== this.texUnit) {
                     this.value = this.texUnit;
                     buf.setUniform1I(this, this.texUnit);
                 }
@@ -240,7 +240,7 @@ namespace Facepunch {
             }
 
             bufferValue(buf: CommandBuffer, transpose: boolean, values: Float32Array): void {
-                if (this.transpose === transpose && this.values === values) return;
+                if (!buf.immediate && this.transpose === transpose && this.values === values) return;
                 this.transpose = transpose;
                 this.values = values;
 

@@ -79,6 +79,7 @@ namespace Facepunch {
 
                     this.projectionMatrix.bufferParameter(buf, Camera.projectionMatrixParam);
                     this.viewMatrix.bufferParameter(buf, Camera.viewMatrixParam);
+                    this.time.bufferParameter(buf, Game.timeInfoParam);
 
                     const gl = this.context;
 
@@ -98,7 +99,6 @@ namespace Facepunch {
 
                     const gl = this.context;
 
-                    this.time.bufferParameter(buf, Game.timeInfoParam);
                     this.color0.bufferValue(buf, props.color0.x, props.color0.y, props.color0.z);
                     this.color1.bufferValue(buf, props.color1.x, props.color1.y, props.color1.z);
                     this.phase.bufferValue(buf, props.phase);
