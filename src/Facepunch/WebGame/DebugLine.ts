@@ -19,6 +19,8 @@ namespace Facepunch {
 
             private meshChanged = false;
 
+            progressScale = 1;
+
             constructor(game: Game) {
                 super();
 
@@ -40,11 +42,19 @@ namespace Facepunch {
                 this.meshChanged = true;
             }
 
-            setPhase(value: number): void {
+            get phase(): number {
+                return this.materialProps.phase;
+            }
+
+            set phase(value: number) {
                 this.materialProps.phase = value;
             }
 
-            setFrequency(value: number): void {
+            get frequency(): number {
+                return this.materialProps.frequency;
+            }
+
+            set frequency(value: number) {
                 this.materialProps.frequency = value;
             }
 
@@ -78,14 +88,16 @@ namespace Facepunch {
                 this.addVertex(pos, this.progress);
             }
 
-            lineTo(pos: IVector3, progressScale?: number): void {
-                if (progressScale === undefined) progressScale = 1;
-
+            lineTo(pos: IVector3, progress?: number): void {
                 const indexData = this.indexData;
 
                 this.meshChanged = true;
-                this.lastPos.sub(pos);
-                this.progress += this.lastPos.length() * progressScale;
+                if (progress === undefined) {
+                    this.lastPos.sub(pos);
+                    this.progress += this.lastPos.length() * this.progressScale;
+                } else {
+                    this.progress = progress;
+                }
                 this.lastPos.copy(pos);
 
                 const index = this.addVertex(pos, this.progress);

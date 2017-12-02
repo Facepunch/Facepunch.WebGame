@@ -32,6 +32,7 @@ class TestGame extends WebGame.Game {
 
         this.testLine = new WebGame.DebugLine(this);
         this.testLine.setColor({x: 1.0, y: 0.0, z: 1.0}, {x: 0.0, y: 1.0, z: 0.0});
+        this.testLine.progressScale = 1 / 32;
 
         for (let x = -5; x < 5; ++x) {
             for (let y = -5; y < 5; ++y) {
@@ -58,7 +59,7 @@ class TestGame extends WebGame.Game {
                 if (y === -5) {
                     this.testLine.moveTo(pos);
                 } else {
-                    this.testLine.lineTo(pos, 1 / 32);
+                    this.testLine.lineTo(pos);
                 }
 
                 this.testObjects.push(obj);
