@@ -34,7 +34,6 @@ namespace Facepunch {
             
             private mouseScreenPos = new Vector2();
             private mouseLookDelta = new Vector2();
-            private mouseLookVel = new Vector2();
 
             constructor(container: HTMLElement) {
                 this.container = container;
