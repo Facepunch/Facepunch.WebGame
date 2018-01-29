@@ -79,19 +79,8 @@ namespace Facepunch {
                 
                     if (this.isPointerLocked()) {
                         const e = evnt as any;
-
-                        const accelX = e.movementX - this.mouseLookDelta.x;
-                        const accelY = e.movementY - this.mouseLookDelta.y;
-
-                        // https://bugs.chromium.org/p/chromium/issues/detail?id=781182
-                        if (Math.abs(accelX) < 300 && Math.abs(accelY) < 300) {
-                            this.mouseLookDelta.x = e.movementX;
-                            this.mouseLookDelta.y = e.movementY;
-                        }
-
+                        this.mouseLookDelta.set(e.movementX, e.movementY);
                         this.onMouseLook(this.mouseLookDelta);
-                    } else {
-                        this.mouseLookDelta.set(0, 0);
                     }
                 });
 
