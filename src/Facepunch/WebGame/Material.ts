@@ -143,6 +143,11 @@ namespace Facepunch {
                         break;
                     }
                     case MaterialPropertyType.TextureInfo: {
+                        if (info.value == null) {
+                            console.warn("Texture info missing for material.");
+                            break;
+                        }
+
                         const texInfo = info.value as ITextureInfo;
                         const tex = this.properties[info.name] = texInfo.path != null
                             ? this.game.textureLoader.load(texInfo.path)
@@ -150,6 +155,7 @@ namespace Facepunch {
 
                         tex.addDependent(this);
                         tex.loadFromInfo(texInfo);
+                        break;
                     }
                 }
             }
